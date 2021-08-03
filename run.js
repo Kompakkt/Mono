@@ -1,4 +1,4 @@
-const { writeFileSync } = require('fs');
+const { existsSync, writeFile } = require('fs');
 const { spawn } = require('child_process');
 const { join } = require('path');
 
@@ -24,6 +24,8 @@ const {
   LDAP,
 } = Configuration;
 
+const getGitURL = repository => `https://github.com/Kompakkt/${repository}.git`;
+
 const SSL_ARGS = ENABLE_HTTPS
   ? ['--ssl', 'true', '--ssl-cert', SSL_CERT_FILE, '--ssl-key', SSL_KEY_FILE]
   : [];
@@ -40,6 +42,11 @@ const execute = (command, args, options = { cwd: process.cwd() }, silent = true)
     });
   });
 };
+
+const writeFileWrapper = (path, data) => new Promise((resolve, reject) => writeFile(path, data, (err) => {
+  if (err) return reject(err);
+  return resolve();
+}))
 
 // Prepare
 const writeServerConfiguration = () => {
@@ -73,7 +80,7 @@ const writeServerConfiguration = () => {
   };
 
   const path = join(__dirname, 'Server', 'src', 'config.json');
-  writeFileSync(path, JSON.stringify(config));
+  return writeFileWrapper(path, JSON.stringify(config));
 };
 
 const writeViewerEnvironmentFile = () => {
@@ -87,7 +94,7 @@ export const environment = {
 };`.trim();
   const path = join(__dirname, 'Viewer', 'src', 'environments', 'environment.ts');
 
-  writeFileSync(path, config);
+  return writeFileWrapper(path, config);
 };
 
 const writeRepoEnvironmentFile = () => {
@@ -105,32 +112,32 @@ const writeRepoEnvironmentFile = () => {
   };`.trim();
   const path = join(__dirname, 'Repo', 'src', 'environments', 'environment.ts');
 
-  writeFileSync(path, config);
+  return writeFileWrapper(path, config);
 };
 
-const installViewerPackages = () => {
-  const path = join(__dirname, 'Viewer');
-  return execute('npm', ['install', '--no-optional'], { cwd: path });
-};
+const cloneAndInstall = async repository => {
+  const path = join(__dirname, repository);
+  if (!existsSync(path)) {
+    await execute('git', ['clone', '--recursive', getGitURL(repository), repository]);
+  }
 
-const installRepoPackages = () => {
-  const path = join(__dirname, 'Repo');
-  return execute('npm', ['install', '--no-optional'], { cwd: path });
-};
-
-const installServerPackages = () => {
-  const path = join(__dirname, 'Server');
   return execute('npm', ['install', '--no-optional'], { cwd: path });
 };
 
 const createConfigurationFiles = () => {
-  writeRepoEnvironmentFile();
-  writeServerConfiguration();
-  writeViewerEnvironmentFile();
+  return Promise.all([
+    writeRepoEnvironmentFile(),
+    writeServerConfiguration(),
+    writeViewerEnvironmentFile(),
+  ]);
 };
 
 const installPackages = () => {
-  return Promise.all([installViewerPackages(), installRepoPackages(), installServerPackages()]);
+  return Promise.all([
+    cloneAndInstall('Viewer'),
+    cloneAndInstall('Repo'),
+    cloneAndInstall('Server'),
+  ]);
 };
 
 // Run
@@ -164,12 +171,13 @@ const runDockerCompose = () => {
 
 // Main
 const main = async () => {
-  console.log('Writing configuration and environment files');
-  createConfigurationFiles();
   console.log('Installing all packages');
   await installPackages()
     .then(codes => console.log('Sucessfully installed all packages'))
     .catch(error => console.error);
+
+  console.log('Writing configuration and environment files');
+  await createConfigurationFiles();
 
   if (USE_COMPOSE) {
     console.log('Pulling docker images for Redis and MongoDB');
