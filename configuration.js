@@ -60,4 +60,15 @@ module.exports = {
     // Bug reports will be sent to:
     bugreport: 'bugreport@example.com',
   },
+
+  //##########
+  //## LDAP ##
+  //##########
+  ENABLE_LDAP: false,
+  LDAP: {
+    DN: '',
+    DNauthUID: false,
+    Host: '',
+    searchBase: '',
+  }
 };
