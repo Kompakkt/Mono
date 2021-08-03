@@ -1,0 +1,9 @@
+[submodule "Viewer"]
+	path = Viewer
+	url = https://github.com/Kompakkt/Viewer
+[submodule "Repo"]
+	path = Repo
+	url = https://github.com/Kompakkt/Repo
+[submodule "Server"]
+	path = Server
+	url = https://github.com/Kompakkt/Server
