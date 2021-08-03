@@ -10,7 +10,7 @@
 - Global Angular CLI
 
 Optional, but eases server setup:
-- Docker or Podman
+- Docker Compose
 
 ### Getting started
 

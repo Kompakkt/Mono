@@ -5,12 +5,10 @@ const { spawn } = require('child_process');
 const Configuration = require('./configuration');
 
 const {
-  USE_SELFHOSTED,
   REDIS_HOST,
   REDIS_PORT,
   MONGO_URL,
   USE_COMPOSE,
-  USE_DOCKER,
   SERVER_PORT,
   VIEWER_PORT,
   REPO_PORT,

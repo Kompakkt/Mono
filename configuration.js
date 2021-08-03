@@ -1,7 +1,7 @@
 // Note: there is no point in running this file by itself,,
 // as it only sets environment variables for the main script file
 
-const Configuration = {
+module.exports = {
   //#############
   //## GENERAL ##
   //#############
@@ -13,19 +13,13 @@ const Configuration = {
   //#####################
   //## MongoDB & Redis ##
   //#####################
-  // Default: expects you to have your own redis and MongoDB instances
-  USE_SELFHOSTED: true,
+  // Default: expects you to have your own redis and MongoDB instances.
 
   // If you have docker-compose installed, you can enable this
   // option to run MongoDB and Redis using the provided compose file
   USE_COMPOSE: false,
 
-  // If you have docker/podman installed, but not docker-compose,
-  // you can enable this option to run MongoDB and Redis
-  // inside of docker containers
-  USE_DOCKER: false,
-
-  // Note: If using Docker or Docker Compose,
+  // Note: If using Docker Compose,
   // only MongoDB and Redis will be run in containers
   // so these settings still need to be configured
   REDIS_HOST: 'localhost',
@@ -67,5 +61,3 @@ const Configuration = {
     bugreport: 'bugreport@example.com',
   },
 };
-
-module.exports = Configuration;

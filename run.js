@@ -5,12 +5,10 @@ const { installPackages, createConfigurationFiles } = require('./prepare');
 const Configuration = require('./configuration');
 
 const {
-  USE_SELFHOSTED,
   REDIS_HOST,
   REDIS_PORT,
   MONGO_URL,
   USE_COMPOSE,
-  USE_DOCKER,
   SERVER_PORT,
   VIEWER_PORT,
   REPO_PORT,
@@ -63,6 +61,32 @@ const runServer = () => {
   });
 };
 
+const pullImages = () => {
+  return Promise.all([
+    new Promise((resolve, reject) => {
+      const ps = spawn('docker', ['pull', 'mongo:4.4'], { cwd: process.cwd() });
+      ps.stdout.on('data', data => console.log(`${data}`));
+      ps.stderr.on('data', data => console.log(`${data}`));
+      ps.on('close', code => (code === 0 ? resolve('Success') : reject('Failure')));
+    }),
+    new Promise((resolve, reject) => {
+      const ps = spawn('docker', ['pull', 'redis:6.2-alpine'], { cwd: process.cwd() });
+      ps.stdout.on('data', data => console.log(`${data}`));
+      ps.stderr.on('data', data => console.log(`${data}`));
+      ps.on('close', code => (code === 0 ? resolve('Success') : reject('Failure')));
+    }),
+  ]);
+};
+
+const runDockerCompose = () => {
+  return new Promise((resolve, reject) => {
+    const ps = spawn('docker-compose', ['up'], { cwd: process.cwd() });
+    ps.stdout.on('data', data => console.log(`${data}`));
+    ps.stderr.on('data', data => console.log(`${data}`));
+    ps.on('close', code => (code === 0 ? resolve('Success') : reject('Failure')));
+  });
+};
+
 const main = async () => {
   console.log('Writing configuration and environment files');
   createConfigurationFiles();
@@ -70,8 +94,16 @@ const main = async () => {
   await installPackages()
     .then(codes => console.log('Sucessfully installed all packages'))
     .catch(error => console.error);
-  console.log('Running all applications');
-  await Promise.all([runRepo(), runViewer(), runServer()]);
+
+  if (USE_COMPOSE) {
+    console.log('Pulling docker images for Redis and MongoDB');
+    await pullImages();
+    console.log('Running all applications and docker-compose');
+    await Promise.all([runDockerCompose(), runRepo(), runViewer(), runServer()]);
+  } else {
+    console.log('Running all applications');
+    await Promise.all([runRepo(), runViewer(), runServer()]);
+  }
 };
 
 main();
