@@ -4,13 +4,15 @@
 
 ### Requirements
 
-- Bash for the scripts
-- NodeJS 14 or higher to run the Angular Frontends and the Server
-- NPM 7 or higher to manage NodeJS packages
-- Global Angular CLI
+- [NodeJS 14 and NPM 7](https://nodejs.org/en/download/) to run the scripts and the applications
+- [Global Angular CLI](https://angular.io/cli#installing-angular-cli)
 
-Optional, but eases server setup:
-- Docker Compose
+#### Either:
+- [Docker with Docker Compose](https://docs.docker.com/compose/install/)
+
+#### Or:
+- A [Redis](https://redis.io/) instance
+- A [MongoDB](https://www.mongodb.com/) instance
 
 ### Getting started
 
@@ -20,7 +22,7 @@ Clone this repository recursively:
 Change in to the cloned directory
 ```cd Kompakkt.Mono```
 
-Open ```configuration``` in your favorite editor and configure the variables
+Open ```configuration.js``` in your favorite editor and configure the variables
 
 Run everything using
 ```node run.js```
