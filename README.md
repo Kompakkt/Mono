@@ -27,3 +27,24 @@ Open ```configuration.js``` in your favorite editor and configure the variables
 Run everything using
 ```node run.js```
 
+### Using HTTPS
+
+HTTPS is highly recommended. If you're planning on only running it locally, you can still get HTTPS by generating a local SSL certificate using OpenSSL and setting a domain/redirect in your hosts file.
+
+#### Enabling HTTPS
+
+Inside of ```configuration.js```, set ```ENABLE_HTTPS``` to ```true``` and configure the file paths to the SSL private key and certificate.
+
+**Note: passphrases are not supported in this environment due to 'ng serve' not supporting passphrases**
+
+#### Hosts file
+
+Inside of your systems hosts file, add a line with a redirect to ```127.0.0.1```. This could look something like this (on linux): ```127.0.0.1 local.dev localhost```
+
+After saving and restarting, your localhost should be reachable under the domain ```local.dev```.
+
+Now you can generate an SSL certificate for local.dev & localhost.
+
+#### Generating a certificate
+
+You can use a tool like [this](https://github.com/kingkool68/generate-ssl-certs-for-local-development) to generate an SSL certificate for you using OpenSSL. Just make sure to not use a passphrase, as noted above!
