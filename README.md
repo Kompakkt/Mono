@@ -47,4 +47,7 @@ Now you can generate an SSL certificate for local.dev & localhost.
 
 #### Generating a certificate
 
-You can use a tool like [this](https://github.com/kingkool68/generate-ssl-certs-for-local-development) to generate an SSL certificate for you using OpenSSL. Just make sure to not use a passphrase, as noted above!
+You can use a tool like [mkcert](https://github.com/FiloSottile/mkcert) to generate an SSL certificate for you using OpenSSL. Just make sure to not use a passphrase, as noted above!
+
+mkcert example:
+```mkcert local.dev```
