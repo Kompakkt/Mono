@@ -33,7 +33,7 @@ const SSL_ARGS = ENABLE_HTTPS
 // Helper method
 const execute = (command, args, options = { cwd: process.cwd() }, silent = true) => {
   return new Promise((resolve, reject) => {
-    const ps = spawn(command, args, options);
+    const ps = spawn(command, args, { ...options });
     if (!silent) ps.stdout.on('data', data => console.log(`${data}`));
     ps.stderr.on('data', data => console.log(`${data}`));
     ps.on('close', code => {
@@ -43,10 +43,13 @@ const execute = (command, args, options = { cwd: process.cwd() }, silent = true)
   });
 };
 
-const writeFileWrapper = (path, data) => new Promise((resolve, reject) => writeFile(path, data, (err) => {
-  if (err) return reject(err);
-  return resolve();
-}))
+const writeFileWrapper = (path, data) =>
+  new Promise((resolve, reject) =>
+    writeFile(path, data, err => {
+      if (err) return reject(err);
+      return resolve();
+    }),
+  );
 
 // Prepare
 const writeServerConfiguration = () => {
@@ -87,10 +90,9 @@ const writeViewerEnvironmentFile = () => {
   const config = `
 export const environment = {
   production: false,
-  express_server_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}',
-  express_server_port: ${SERVER_PORT},
+  server_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${SERVER_PORT}/',
   version: require('../../package.json').version,
-  repository: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${REPO_PORT}',
+  repo_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${REPO_PORT}/',
 };`.trim();
   const path = join(__dirname, 'Viewer', 'src', 'environments', 'environment.ts');
 
@@ -101,11 +103,8 @@ const writeRepoEnvironmentFile = () => {
   const config = `
   export const environment = {
     production: true,
-    kompakkt_url: '${
-      ENABLE_HTTPS ? 'https' : 'http'
-    }://${PUBLIC_ADDRESS}:${VIEWER_PORT}/index.html',
-    express_server_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}',
-    express_server_port: ${SERVER_PORT},
+    viewer_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${VIEWER_PORT}/index.html',
+    server_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${SERVER_PORT}/',
     tracking: false,
     tracking_url: '',
     tracking_id: 0,
@@ -121,7 +120,7 @@ const cloneAndInstall = async repository => {
     await execute('git', ['clone', '--recursive', getGitURL(repository), repository]);
   }
 
-  return execute('npm', ['install', '--no-optional'], { cwd: path });
+  return execute('npm', ['install', '--no-optional', '--quiet', '--no-progress'], { cwd: path });
 };
 
 const createConfigurationFiles = () => {
