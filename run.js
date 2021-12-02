@@ -22,6 +22,7 @@ const {
   REDIS_PORT,
   MONGO_URL,
   USE_DOCKER,
+  SILENT_DOCKER,
   DOCKER_TAGS,
   SERVER_PORT,
   VIEWER_PORT,
@@ -282,12 +283,12 @@ const runServer = () => {
 const runRedis = () => {
   // TODO: Configurable IP and Port?
   const tag = DOCKER_TAGS.REDIS;
-  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:6379:6379 redis:${tag}`;
+  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:6380:6379 redis:${tag}`;
   return execute({
     command: 'docker',
     args: args.split(' '),
     name: 'REDIS',
-    silent: false,
+    silent: SILENT_DOCKER,
     shell: true,
   });
 };
@@ -297,12 +298,12 @@ const runRedis = () => {
 const runMongo = () => {
   // TODO: Configurable IP and Port?
   const tag = DOCKER_TAGS.MONGO;
-  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:27017:27017 mongo:${tag}`;
+  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:27018:27017 mongo:${tag} --quiet`;
   return execute({
     command: 'docker',
     args: args.split(' '),
     name: 'MONGO',
-    silent: false,
+    silent: SILENT_DOCKER,
     shell: true,
   });
 };
@@ -374,9 +375,10 @@ const main = async () => {
       shutdownContainers().then(() => process.exit(1));
     });
 
-    await sleep(15000);
+    await sleep(10000);
 
     console.log(COLORS.FgCyan, 'Starting Kompakkt services');
+
     await Promise.all([runRepo(), runViewer(), runServer()]).catch(error => {
       console.log(COLORS.FgRed, 'Execution failed');
       shutdownContainers().then(() => process.exit(1));

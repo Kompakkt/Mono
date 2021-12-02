@@ -26,6 +26,8 @@ module.exports = {
   // To change this behaviour, disable docker below and configure
   // Redis and MongoDB to connect to other instances.
   USE_DOCKER: true,
+  // Disable console output of Redis and MongoDB instances
+  SILENT_DOCKER: true,
   // Docker version tags for MongoDB and Redis
   DOCKER_TAGS: {
     MONGO: '4.4',
