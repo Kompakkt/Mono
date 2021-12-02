@@ -1,6 +1,7 @@
 const { existsSync, writeFile } = require('fs');
 const { spawn } = require('child_process');
 const { join } = require('path');
+const mkcert = require('mkcert');
 const commandExists = require('command-exists');
 
 const Configuration = require('./configuration');
@@ -26,10 +27,6 @@ const {
   VIEWER_PORT,
   REPO_PORT,
   SESSION_SECRET,
-  ENABLE_HTTPS,
-  PUBLIC_ADDRESS,
-  SSL_KEY_FILE,
-  SSL_CERT_FILE,
   MAIL_HOST,
   MAIL_PORT,
   MAIL_TARGETS,
@@ -39,11 +36,16 @@ const {
 
 const getGitURL = repository => `https://github.com/Kompakkt/${repository}.git`;
 
-const SSL_ARGS = ENABLE_HTTPS
-  ? ['--ssl', 'true', '--ssl-cert', SSL_CERT_FILE, '--ssl-key', SSL_KEY_FILE]
-  : [];
-
 // Helper method
+const getSSLPair = () => {
+  return {
+    key: join(__dirname, 'key.pem'),
+    cert: join(__dirname, 'cert.pem'),
+  };
+};
+
+const SSL_ARGS = ['--ssl', 'true', '--ssl-cert', getSSLPair().cert, '--ssl-key', getSSLPair().key];
+
 const execute = options => {
   const defaultOpts = {
     command: '',
@@ -84,6 +86,48 @@ const writeFileWrapper = (path, data) =>
   );
 
 // Requirements
+const checkOrCreateCert = async () => {
+  const keyPath = join(__dirname, 'key.pem');
+  const keyExists = existsSync(keyPath);
+  const certPath = join(__dirname, 'cert.pem');
+  const certExists = existsSync(certPath);
+  const fullchainPath = join(__dirname, 'fullchain.pem');
+
+  if (keyExists && certExists) {
+    console.log(COLORS.FgMagenta, 'SSL key and cert already exist');
+    return;
+  }
+
+  const ca = await mkcert.createCA({
+    organization: 'Kompakkt.Mono Dev CA',
+    countryCode: 'DE',
+    state: 'NRW',
+    locality: 'Cologne',
+    validityDays: 365,
+  });
+
+  const cert = await mkcert.createCert({
+    domains: ['127.0.0.1', 'localhost'],
+    validityDays: 365,
+    caKey: ca.key,
+    caCert: ca.cert,
+  });
+
+  return await Promise.all([
+    writeFileWrapper(keyPath, cert.key),
+    writeFileWrapper(certPath, cert.cert),
+    writeFileWrapper(fullchainPath, `${cert.cert}\n${ca.cert}`),
+  ])
+    .then(() => {
+      console.log(COLORS.FgGreen, 'Created SSL key and cert');
+    })
+    .catch(err => {
+      console.log(COLORS.FgRed, 'Failed creating SSL key and cert');
+      console.log(err);
+      process.exit(1);
+    });
+};
+
 const checkRequirements = async () => {
   const check = cmd =>
     commandExists(cmd)
@@ -96,6 +140,7 @@ const checkRequirements = async () => {
 
 // Configuration files
 const writeServerConfiguration = () => {
+  const { key, cert } = getSSLPair();
   const config = {
     Mongo: {
       ClientURL: MONGO_URL,
@@ -108,14 +153,12 @@ const writeServerConfiguration = () => {
       Host: '0.0.0.0',
       Port: SERVER_PORT,
       PassportSecret: SESSION_SECRET,
-      PublicIP: PUBLIC_ADDRESS,
-      enableHTTPS: ENABLE_HTTPS,
-      SSLPaths: ENABLE_HTTPS
-        ? {
-            PrivateKey: SSL_KEY_FILE,
-            Certificate: SSL_CERT_FILE,
-          }
-        : undefined,
+      PublicIP: 'localhost',
+      enableHTTPS: true,
+      SSLPaths: {
+        PrivateKey: key,
+        Certificate: cert,
+      },
       LDAP: ENABLE_LDAP ? LDAP : undefined,
     },
     Mailer: {
@@ -133,9 +176,9 @@ const writeViewerEnvironmentFile = () => {
   const config = `
 export const environment = {
   production: false,
-  server_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${SERVER_PORT}/',
+  server_url: 'https://localhost:${SERVER_PORT}/',
   version: require('../../package.json').version,
-  repo_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${REPO_PORT}/',
+  repo_url: 'https://localhost:${REPO_PORT}/',
 };`.trim();
   const path = join(__dirname, 'Viewer', 'src', 'environments', 'environment.ts');
 
@@ -146,8 +189,8 @@ const writeRepoEnvironmentFile = () => {
   const config = `
   export const environment = {
     production: true,
-    viewer_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${VIEWER_PORT}/index.html',
-    server_url: '${ENABLE_HTTPS ? 'https' : 'http'}://${PUBLIC_ADDRESS}:${SERVER_PORT}/',
+    viewer_url: 'https://localhost:${VIEWER_PORT}/index.html',
+    server_url: 'https://localhost:${SERVER_PORT}/',
     tracking: false,
     tracking_url: '',
     tracking_id: 0,
@@ -299,6 +342,8 @@ const main = async () => {
   } else {
     console.log(COLORS.FgGreen, 'All requirements met');
   }
+
+  await checkOrCreateCert();
 
   console.log(
     COLORS.FgYellow,

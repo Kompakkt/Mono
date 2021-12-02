@@ -42,26 +42,6 @@ module.exports = {
   // No need for configuration when using docker.
   MONGO_URL: 'mongodb://localhost:27017',
 
-  // ###########
-  // ## HTTPS ##
-  // ###########
-  // Note: HTTPS is basically required to have
-  // secure session cookies working, so it's recommended
-  // to generate a local certificate for development using
-  // OpenSSL and redirecting localhost to a fake development
-  // domain in yourhosts file or, if you're running on a server
-  // behind a real domain, use your existing SSL certificate
-  // or getting a new one using Let's Encrypt/ZeroSSL
-
-  // The other options will be are ignored if HTTPS is disabled
-  ENABLE_HTTPS: false,
-  // This could be a fake domain in your hosts file or your real domain.
-  // /etc/hosts example to redirect locally:
-  // 127.0.0.1 local.dev localhost
-  PUBLIC_ADDRESS: 'localhost',
-
-  SSL_KEY_FILE: '/path/to/privkey.pem',
-  SSL_CERT_FILE: '/path/to/cert.pem',
 
   // ##########
   // ## MAIL ##
