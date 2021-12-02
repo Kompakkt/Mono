@@ -26,7 +26,7 @@ module.exports = {
 
   // If you have docker installed, you can enable this
   // option to run MongoDB and Redis using docker containers
-  USE_DOCKER: false,
+  USE_DOCKER: true,
   // Docker version tags for MongoDB and Redis
   DOCKER_TAGS: {
     MONGO: '4.4',
