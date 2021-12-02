@@ -327,16 +327,17 @@ const main = async () => {
     console.log(COLORS.FgCyan, 'Running kompakkt services without docker');
     await Promise.all([runRepo(), runViewer(), runServer()]).catch(error => {
       console.log(COLORS.FgRed, 'Execution failed');
-      shutdownContainers().then(() => process.exit(1));
     });
   }
 };
 
 process.on('SIGINT', () => {
-  console.log(COLORS.FgYellow, 'Interrupt detected. Shutting down containers');
-  shutdownContainers()
-    .then(() => {})
-    .catch(() => {});
+  if (USE_DOCKER) {
+    console.log(COLORS.FgYellow, 'Interrupt detected. Shutting down containers');
+    shutdownContainers()
+      .then(() => {})
+      .catch(() => {});
+  }
 });
 
 process.on('close', code => {
