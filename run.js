@@ -46,6 +46,13 @@ const getSSLPair = () => {
 
 const SSL_ARGS = ['--ssl', 'true', '--ssl-cert', getSSLPair().cert, '--ssl-key', getSSLPair().key];
 
+const sleep = delay =>
+  new Promise((resolve, _) =>
+    setTimeout(() => {
+      resolve();
+    }, delay),
+  );
+
 const execute = options => {
   const defaultOpts = {
     command: '',
@@ -361,15 +368,21 @@ const main = async () => {
   if (USE_DOCKER) {
     console.log(COLORS.FgCyan, 'Pulling docker images for Redis and MongoDB');
     await pullImages();
-    console.log(COLORS.FgCyan, 'Running kompakkt services and docker');
-    await Promise.all([runRedis(), runMongo(), runRepo(), runViewer(), runServer()]).catch(
-      error => {
-        console.log(COLORS.FgRed, 'Execution failed');
-        shutdownContainers().then(() => process.exit(1));
-      },
-    );
+    console.log(COLORS.FgCyan, 'Starting Redis and MongoDB');
+    Promise.all([runRedis(), runMongo()]).catch(error => {
+      console.log(COLORS.FgRed, 'Execution failed');
+      shutdownContainers().then(() => process.exit(1));
+    });
+
+    await sleep(15000);
+
+    console.log(COLORS.FgCyan, 'Starting Kompakkt services');
+    await Promise.all([runRepo(), runViewer(), runServer()]).catch(error => {
+      console.log(COLORS.FgRed, 'Execution failed');
+      shutdownContainers().then(() => process.exit(1));
+    });
   } else {
-    console.log(COLORS.FgCyan, 'Running kompakkt services without docker');
+    console.log(COLORS.FgCyan, 'Running Kompakkt services without docker');
     await Promise.all([runRepo(), runViewer(), runServer()]).catch(error => {
       console.log(COLORS.FgRed, 'Execution failed');
     });
