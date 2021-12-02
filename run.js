@@ -70,7 +70,7 @@ const execute = options => {
         COLORS.FgYellow,
         `${command} with args [${args.join(',')}] closed with code ${code}`,
       );
-      code === 0 ? resolve('Success') : reject('Failure');
+      code === 0 || code === null ? resolve('Success') : reject('Failure');
     });
   });
 };
