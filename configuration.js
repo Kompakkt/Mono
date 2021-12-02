@@ -2,54 +2,49 @@
 // as it only sets environment variables for the main script file
 
 module.exports = {
-  //#############
-  //## GENERAL ##
-  //#############
+  // #############
+  // ## GENERAL ##
+  // #############
+  // Configure the ports of the kompakkt services below
   SERVER_PORT: 8080,
   VIEWER_PORT: 8100,
   REPO_PORT: 4200,
+
+  // Change the session secret used for creating user sessions
   SESSION_SECRET: 'changeme',
+  // The session secret could also be pulled from an environment variable
+  // or a file.
+  // Example for environment variable based secret:
+  // SESSION_SECRET: process.env['KOMPAKKT_SESSION_SECRET'],
+  // Example for file based secret:
+  // SESSION_SECRET: require('fs').readFileSync('/path/to/secret.txt').toString(),
 
-  //#####################
-  //## MongoDB & Redis ##
-  //#####################
-  // Default: expects you to have your own redis and MongoDB instances.
+  // #####################
+  // ## MongoDB & Redis ##
+  // #####################
+  // By default docker will be used to host MongoDB and Redis.
+  // To change this behaviour, disable docker below and configure
+  // Redis and MongoDB to connect to other instances.
+  USE_DOCKER: true,
+  // Docker version tags for MongoDB and Redis
+  DOCKER_TAGS: {
+    MONGO: '4.4',
+    REDIS: '6.2',
+  },
 
-  // If you have docker-compose installed, you can enable this
-  // option to run MongoDB and Redis using the provided compose file
-  USE_COMPOSE: false,
-
-  // Note: If using Docker Compose,
-  // only MongoDB and Redis will be run in containers
-  // so these settings still need to be configured
+  // Configure how to connect to a redis instance.
+  // No need for configuration when using docker.
   REDIS_HOST: 'localhost',
   REDIS_PORT: 6379,
+
+  // Configure how to connect to MongoDB.
+  // No need for configuration when using docker.
   MONGO_URL: 'mongodb://localhost:27017',
 
-  //###########
-  //## HTTPS ##
-  //###########
-  // Note: HTTPS is basically required to have
-  // secure session cookies working, so it's recommended
-  // to generate a local certificate for development using
-  // OpenSSL and redirecting localhost to a fake development
-  // domain in yourhosts file or, if you're running on a server
-  // behind a real domain, use your existing SSL certificate
-  // or getting a new one using Let's Encrypt/ZeroSSL
 
-  // The other options will be are ignored if HTTPS is disabled
-  ENABLE_HTTPS: false,
-  // This could be a fake domain in your hosts file or your real domain.
-  // /etc/hosts example to redirect locally:
-  // 127.0.0.1 local.dev localhost
-  PUBLIC_ADDRESS: 'local.dev',
-
-  SSL_KEY_FILE: '/path/to/privkey.pem',
-  SSL_CERT_FILE: '/path/to/cert.pem',
-
-  //##########
-  //## MAIL ##
-  //##########
+  // ##########
+  // ## MAIL ##
+  // ##########
   MAIL_HOST: 'smtp.example.com',
   MAIL_PORT: 25,
   MAIL_TARGETS: {
@@ -61,10 +56,12 @@ module.exports = {
     bugreport: 'bugreport@example.com',
   },
 
-  //##########
-  //## LDAP ##
-  //##########
-  ENABLE_LDAP: false,
+  // ##########
+  // ## LDAP ##
+  // ##########
+  // The server can use LDAP authentication via passport-ldapauth
+  // https://www.npmjs.com/package/passport-ldapauth
+  // Some of the settings can be configured below
   LDAP: {
     DN: '',
     DNauthUID: false,

@@ -1,0 +1,23 @@
+{
+  "name": "kompakkt.mono",
+  "version": "1.0.0",
+  "description": "A collection of scripts to get a Kompakkt development environment up and running",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kompakkt/Mono.git"
+  },
+  "author": "Kai Niebes <kai.niebes@outlook.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kompakkt/Mono/issues"
+  },
+  "homepage": "https://github.com/Kompakkt/Mono#readme",
+  "devDependencies": {
+    "command-exists": "^1.2.9",
+    "mkcert": "^1.4.0"
+  }
+}
