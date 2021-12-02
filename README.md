@@ -1,5 +1,9 @@
 # Kompakkt Mono
 
+<p align="center">
+    <img src="https://github.com/Kompakkt/Assets/raw/main/mono-logo.png" alt="Kompakkt Mono Logo" width="600">
+</p>
+
 ## A collection of scripts to get a Kompakkt development environment up and running
 
 ### General
