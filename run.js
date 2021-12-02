@@ -1,6 +1,7 @@
 const { existsSync, writeFile } = require('fs');
 const { spawn } = require('child_process');
 const { join } = require('path');
+const commandExists = require('command-exists');
 
 const Configuration = require('./configuration');
 
@@ -82,7 +83,18 @@ const writeFileWrapper = (path, data) =>
     }),
   );
 
-// Prepare
+// Requirements
+const checkRequirements = async () => {
+  const check = cmd =>
+    commandExists(cmd)
+      .then(() => {})
+      .catch(() => `Could not find '${cmd}'`);
+
+  const commands = ['git', 'npm', 'node', 'docker', 'ng'];
+  return (await Promise.all(commands.map(check))).filter(_ => _);
+};
+
+// Configuration files
 const writeServerConfiguration = () => {
   const config = {
     Mongo: {
@@ -274,6 +286,19 @@ const pullImages = () => {
 // Main
 const main = async () => {
   console.log(COLORS.FgCyan, 'Starting Kompakkt Mono');
+
+  console.log(COLORS.FgCyan, 'Checking system requirements');
+
+  const missing = await checkRequirements();
+
+  if (missing.length > 0) {
+    console.log(COLORS.FgRed, 'The following requirements are not met:');
+    console.log(COLORS.FgYellow, missing.join('\n'));
+    console.log(COLORS.FgRed, 'Aborting');
+    return;
+  } else {
+    console.log(COLORS.FgGreen, 'All requirements met');
+  }
 
   console.log(
     COLORS.FgYellow,
