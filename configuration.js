@@ -5,6 +5,12 @@ module.exports = {
   // #############
   // ## GENERAL ##
   // #############
+  // By default, a local backend (Server, MongoDB & Redis) would be used to
+  // run Kompakkt. If you want to use Mono against your own backend, you can
+  // set the following option to 'true' and change the backend address
+  SKIP_SERVER_INIT: false,
+  BACKEND_URL: '',
+
   // Configure the ports of the kompakkt services below
   SERVER_PORT: 8080,
   VIEWER_PORT: 8100,

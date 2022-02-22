@@ -33,6 +33,8 @@ const {
   MAIL_TARGETS,
   ENABLE_LDAP,
   LDAP,
+  SKIP_SERVER_INIT,
+  BACKEND_URL,
 } = Configuration;
 
 const getGitURL = repository => `https://github.com/Kompakkt/${repository}.git`;
@@ -181,10 +183,12 @@ const writeServerConfiguration = () => {
 };
 
 const writeViewerEnvironmentFile = () => {
+  const server_url = SKIP_SERVER_INIT ? BACKEND_URL : `https://localhost:${SERVER_PORT}/`;
+
   const config = `
 export const environment = {
   production: false,
-  server_url: 'https://localhost:${SERVER_PORT}/',
+  server_url: '${server_url}',
   version: require('../../package.json').version,
   repo_url: 'https://localhost:${REPO_PORT}/',
 };`.trim();
@@ -194,11 +198,13 @@ export const environment = {
 };
 
 const writeRepoEnvironmentFile = () => {
+  const server_url = SKIP_SERVER_INIT ? BACKEND_URL : `https://localhost:${SERVER_PORT}/`;
+
   const config = `
   export const environment = {
     production: true,
     viewer_url: 'https://localhost:${VIEWER_PORT}/index.html',
-    server_url: 'https://localhost:${SERVER_PORT}/',
+    server_url: '${server_url}',
     tracking: false,
     tracking_url: '',
     tracking_id: 0,
@@ -268,6 +274,7 @@ const runRepo = () => {
 };
 
 const runServer = () => {
+  if (SKIP_SERVER_INIT) return undefined;
   const path = join(__dirname, 'Server');
   return execute({
     command: 'npm',
@@ -367,15 +374,17 @@ const main = async () => {
   await createConfigurationFiles();
 
   if (USE_DOCKER) {
-    console.log(COLORS.FgCyan, 'Pulling docker images for Redis and MongoDB');
-    await pullImages();
-    console.log(COLORS.FgCyan, 'Starting Redis and MongoDB');
-    Promise.all([runRedis(), runMongo()]).catch(error => {
-      console.log(COLORS.FgRed, 'Execution failed');
-      shutdownContainers().then(() => process.exit(1));
-    });
+    if (!SKIP_SERVER_INIT) {
+      console.log(COLORS.FgCyan, 'Pulling docker images for Redis and MongoDB');
+      await pullImages();
+      console.log(COLORS.FgCyan, 'Starting Redis and MongoDB');
+      Promise.all([runRedis(), runMongo()]).catch(error => {
+        console.log(COLORS.FgRed, 'Execution failed');
+        shutdownContainers().then(() => process.exit(1));
+      });
 
-    await sleep(10000);
+      await sleep(10000);
+    }
 
     console.log(COLORS.FgCyan, 'Starting Kompakkt services');
 
