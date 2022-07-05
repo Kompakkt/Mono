@@ -48,6 +48,10 @@ module.exports = {
   // Configure how to connect to MongoDB.
   // No need for configuration when using docker.
   MONGO_URL: 'mongodb://localhost:27017',
+  // Change this if you want to use a non-default port
+  // for the MongoDB docker container.
+  // Otherwise, no need for configuration.
+  MONGO_PORT: null,
 
 
   // ##########

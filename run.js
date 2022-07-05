@@ -21,6 +21,7 @@ const {
   REDIS_HOST,
   REDIS_PORT,
   MONGO_URL,
+  MONGO_PORT,
   USE_DOCKER,
   SILENT_DOCKER,
   DOCKER_TAGS,
@@ -288,9 +289,8 @@ const runServer = () => {
 // Example:
 // docker run --name kompakkt-redis --rm -p "127.0.0.1:6379:6379" redis:6.2
 const runRedis = () => {
-  // TODO: Configurable IP and Port?
   const tag = DOCKER_TAGS.REDIS;
-  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:6380:6379 redis:${tag}`;
+  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:${REDIS_PORT}:6379 redis:${tag}`;
   return execute({
     command: 'docker',
     args: args.split(' '),
@@ -303,9 +303,8 @@ const runRedis = () => {
 // Example
 // docker run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p "127.0.0.1:27017:27017" mongo:4.4
 const runMongo = () => {
-  // TODO: Configurable IP and Port?
   const tag = DOCKER_TAGS.MONGO;
-  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:27018:27017 mongo:${tag} --quiet`;
+  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:${MONGO_PORT ?? 27017}:27017 mongo:${tag} --quiet`;
   return execute({
     command: 'docker',
     args: args.split(' '),
