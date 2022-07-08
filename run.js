@@ -36,6 +36,7 @@ const {
   LDAP,
   SKIP_SERVER_INIT,
   BACKEND_URL,
+  PACKAGE_MANAGER,
 } = Configuration;
 
 const getGitURL = repository => `https://github.com/Kompakkt/${repository}.git`;
@@ -145,7 +146,7 @@ const checkRequirements = async () => {
       .then(() => {})
       .catch(() => `Could not find '${cmd}'`);
 
-  const commands = ['git', 'npm', 'node', 'docker', 'ng'];
+  const commands = ['git', PACKAGE_MANAGER, 'node', 'docker', 'ng'];
   return (await Promise.all(commands.map(check))).filter(_ => _);
 };
 
@@ -226,7 +227,7 @@ const cloneAndInstall = async repository => {
   }
 
   return execute({
-    command: 'npm',
+    command: PACKAGE_MANAGER,
     args: ['install', '--no-optional', '--quiet', '--no-progress'],
     name: repository,
     cwd: path,
@@ -278,7 +279,7 @@ const runServer = () => {
   if (SKIP_SERVER_INIT) return undefined;
   const path = join(__dirname, 'Server');
   return execute({
-    command: 'npm',
+    command: PACKAGE_MANAGER,
     args: ['run', 'dev'],
     name: 'SERVER',
     cwd: path,

@@ -2,6 +2,13 @@
 // as it only sets environment variables for the main script file
 
 module.exports = {
+  // ############
+  // ## SYSTEM ##
+  // ############
+  // Configure which package manager you would like to use.
+  // Possible values could be f.e. 'npm', 'pnpm' or 'yarn'.
+  PACKAGE_MANAGER: 'npm',
+
   // #############
   // ## GENERAL ##
   // #############
