@@ -230,7 +230,7 @@ const cloneAndInstall = async repository => {
 
   return execute({
     command: PACKAGE_MANAGER,
-    args: ['install', '--no-optional', '--quiet', '--no-progress'],
+    args: ['install'].concat(PACKAGE_MANAGER === 'npm' ? ['--no-optional', '--quiet', '--no-progress'] : []),
     name: repository,
     cwd: path,
   });
@@ -244,12 +244,10 @@ const createConfigurationFiles = () => {
   ]);
 };
 
-const installPackages = () => {
-  return Promise.all([
-    cloneAndInstall('Viewer'),
-    cloneAndInstall('Repo'),
-    cloneAndInstall('Server'),
-  ]);
+const installPackages = async () => {
+  const repos = ['Viewer', 'Repo', 'Server'];
+  for (const repo of repos) await cloneAndInstall(repo);
+  return true;
 };
 
 // Run
