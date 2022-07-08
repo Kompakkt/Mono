@@ -29,6 +29,8 @@ const {
   VIEWER_PORT,
   REPO_PORT,
   SESSION_SECRET,
+  MAILHOG_SMTP,
+  MAILHOG_HTTP,
   MAIL_HOST,
   MAIL_PORT,
   MAIL_TARGETS,
@@ -287,8 +289,6 @@ const runServer = () => {
   });
 };
 
-// Example:
-// docker run --name kompakkt-redis --rm -p "127.0.0.1:6379:6379" redis:6.2
 const runRedis = () => {
   const tag = DOCKER_TAGS.REDIS;
   const args = `run --name kompakkt-redis --rm -p 127.0.0.1:${REDIS_PORT}:6379 redis:${tag}`;
@@ -301,8 +301,6 @@ const runRedis = () => {
   });
 };
 
-// Example
-// docker run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p "127.0.0.1:27017:27017" mongo:4.4
 const runMongo = () => {
   const tag = DOCKER_TAGS.MONGO;
   const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:${MONGO_PORT ?? 27017}:27017 mongo:${tag} --quiet`;
@@ -315,10 +313,22 @@ const runMongo = () => {
   });
 };
 
+const runMailHog = () => {
+  const tag = DOCKER_TAGS.MAILHOG;
+  const args = `run --name kompakkt-mailhog --rm -p 127.0.0.1:${MAILHOG_SMTP}:${MAILHOG_SMTP} -p 127.0.0.1:${MAILHOG_HTTP}:${MAILHOG_HTTP} mailhog/mailhog:${tag} -smtp-bind-addr :${MAILHOG_SMTP}`;
+  return execute({
+    command: 'docker',
+    args: args.split(' '),
+    name: 'MAILHOG',
+    silent: SILENT_DOCKER,
+    shell: true,
+  });
+};
+
 const shutdownContainers = () => {
   return execute({
     command: 'docker',
-    args: 'kill kompakkt-mongo kompakkt-redis'.split(' '),
+    args: 'kill kompakkt-mongo kompakkt-redis kompakkt-mailhog'.split(' '),
     silent: false,
     name: 'KILL-CONTAINERS',
   });
@@ -338,6 +348,12 @@ const pullImages = () => {
       name: 'DOCKER-IMAGES',
       silent: false,
     }),
+    execute({
+      command: 'docker',
+      args: ['pull', `mailhog/mailhog:${DOCKER_TAGS.MAILHOG}`],
+      name: 'DOCKER-IMAGES',
+      silent: false,
+    })
   ]);
 };
 
@@ -375,10 +391,10 @@ const main = async () => {
 
   if (USE_DOCKER) {
     if (!SKIP_SERVER_INIT) {
-      console.log(COLORS.FgCyan, 'Pulling docker images for Redis and MongoDB');
+      console.log(COLORS.FgCyan, 'Pulling docker images for MongoDB, Redis & MailHog');
       await pullImages();
-      console.log(COLORS.FgCyan, 'Starting Redis and MongoDB');
-      Promise.all([runRedis(), runMongo()]).catch(error => {
+      console.log(COLORS.FgCyan, 'Starting MongoDB, Redis & MailHog');
+      Promise.all([runRedis(), runMongo(), runMailHog()]).catch(error => {
         console.log(COLORS.FgRed, 'Execution failed');
         shutdownContainers().then(() => process.exit(1));
       });

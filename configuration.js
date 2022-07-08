@@ -32,19 +32,20 @@ module.exports = {
   // Example for file based secret:
   // SESSION_SECRET: require('fs').readFileSync('/path/to/secret.txt').toString(),
 
-  // #####################
-  // ## MongoDB & Redis ##
-  // #####################
-  // By default docker will be used to host MongoDB and Redis.
+  // ######################################
+  // ## Docker: MongoDB, Redis & MailHog ##
+  // ######################################
+  // By default docker will be used to host MongoDB, Redis and MailHog
   // To change this behaviour, disable docker below and configure
   // Redis and MongoDB to connect to other instances.
   USE_DOCKER: true,
-  // Disable console output of Redis and MongoDB instances
+  // Disable console output of docker containers
   SILENT_DOCKER: true,
-  // Docker version tags for MongoDB and Redis
+  // Docker version tags for MongoDB, Redis and MailHog
   DOCKER_TAGS: {
     MONGO: '4.4',
     REDIS: '6.2',
+    MAILHOG: 'v1.0.1',
   },
 
   // Configure how to connect to a redis instance.
@@ -60,12 +61,21 @@ module.exports = {
   // Otherwise, no need for configuration.
   MONGO_PORT: null,
 
+  // Configure the MailHog SMTP server.
+  // If you intend to change this, make sure to
+  // double check your SMTP settings in the MAIL-section below
+  MAILHOG_SMTP: 1025,
+  // Configure the port with which you can reach
+  // the MailHog web interface
+  MAILHOG_HTTP: 8025,
 
   // ##########
   // ## MAIL ##
   // ##########
-  MAIL_HOST: 'smtp.example.com',
-  MAIL_PORT: 25,
+  // This section is configured to use MailHog by default.
+  // You can change this to use your own SMTP Server
+  MAIL_HOST: 'localhost',
+  MAIL_PORT: 1025,
   MAIL_TARGETS: {
     // Contact requests will be sent to:
     contact: 'contact@example.com',
