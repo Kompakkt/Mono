@@ -15,7 +15,6 @@ const {
   MONGO_PORT,
   USE_DOCKER,
   SILENT_DOCKER,
-  DOCKER_TAGS,
   SERVER_PORT,
   VIEWER_PORT,
   REPO_PORT,
@@ -30,6 +29,7 @@ const {
   SKIP_SERVER_INIT,
   BACKEND_URL,
   PACKAGE_MANAGER,
+  DOCKER_IMAGES: { MAILHOG_IMAGE, MONGO_IMAGE, REDIS_IMAGE },
 } = Configuration;
 
 const getGitURL = (repository: string) =>
@@ -193,7 +193,7 @@ const runServer = () => {
   const path = join(__dirname, "Server");
   return execute({
     command: PACKAGE_MANAGER,
-    args: ["run", "dev"],
+    args: ["start"],
     name: "SERVER",
     cwd: path,
     silent: false,
@@ -201,8 +201,7 @@ const runServer = () => {
 };
 
 const runRedis = () => {
-  const tag = DOCKER_TAGS.REDIS;
-  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:${REDIS_PORT}:6379 redis:${tag}`;
+  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:${REDIS_PORT}:6379 --ulimit memlock=-1 ${REDIS_IMAGE} --maxmemory=1gb --proactor_threads=1`;
   return execute({
     command: "docker",
     args: args.split(" "),
@@ -213,8 +212,7 @@ const runRedis = () => {
 };
 
 const runMongo = () => {
-  const tag = DOCKER_TAGS.MONGO;
-  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:${MONGO_PORT ?? 27017}:27017 mongo:${tag} --quiet`;
+  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:${MONGO_PORT ?? 27017}:27017 ${MONGO_IMAGE} --quiet`;
   return execute({
     command: "docker",
     args: args.split(" "),
@@ -225,8 +223,7 @@ const runMongo = () => {
 };
 
 const runMailHog = () => {
-  const tag = DOCKER_TAGS.MAILHOG;
-  const args = `run --name kompakkt-mailhog --rm -p 127.0.0.1:${MAILHOG_SMTP}:${MAILHOG_SMTP} -p 127.0.0.1:${MAILHOG_HTTP}:${MAILHOG_HTTP} mailhog/mailhog:${tag} -smtp-bind-addr :${MAILHOG_SMTP}`;
+  const args = `run --name kompakkt-mailhog --rm -p 127.0.0.1:${MAILHOG_SMTP}:${MAILHOG_SMTP} -p 127.0.0.1:${MAILHOG_HTTP}:${MAILHOG_HTTP} ${MAILHOG_IMAGE} -smtp-bind-addr :${MAILHOG_SMTP}`;
   return execute({
     command: "docker",
     args: args.split(" "),
@@ -249,19 +246,19 @@ const pullImages = () => {
   return Promise.all([
     execute({
       command: "docker",
-      args: ["pull", `mongo:${DOCKER_TAGS.MONGO}`],
+      args: ["pull", MONGO_IMAGE],
       name: "DOCKER-IMAGES",
       silent: false,
     }),
     execute({
       command: "docker",
-      args: ["pull", `redis:${DOCKER_TAGS.REDIS}`],
+      args: ["pull", REDIS_IMAGE],
       name: "DOCKER-IMAGES",
       silent: false,
     }),
     execute({
       command: "docker",
-      args: ["pull", `mailhog/mailhog:${DOCKER_TAGS.MAILHOG}`],
+      args: ["pull", MAILHOG_IMAGE],
       name: "DOCKER-IMAGES",
       silent: false,
     }),

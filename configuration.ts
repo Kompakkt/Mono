@@ -41,11 +41,11 @@ export const Configuration = {
   USE_DOCKER: true,
   // Disable console output of docker containers
   SILENT_DOCKER: true,
-  // Docker version tags for MongoDB, Redis and MailHog
-  DOCKER_TAGS: {
-    MONGO: "4.4",
-    REDIS: "6.2",
-    MAILHOG: "v1.0.1",
+
+  DOCKER_IMAGES: {
+    REDIS_IMAGE: "docker.dragonflydb.io/dragonflydb/dragonfly:latest",
+    MONGO_IMAGE: "docker.io/mongo:8-noble",
+    MAILHOG_IMAGE: "docker.io/mailhog/mailhog:v1.0.1",
   },
 
   // Configure how to connect to a redis instance.
