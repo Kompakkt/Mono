@@ -1,20 +1,12 @@
 import { stat, writeFile } from "node:fs/promises";
-import { spawn, SpawnOptions } from "node:child_process";
+
 import { Configuration } from "./configuration";
 import { join } from "node:path";
 import mkcert from "mkcert";
 import commandExists from "command-exists";
-
-const COLORS = {
-  FgBlack: "\x1b[30m",
-  FgRed: "\x1b[31m",
-  FgGreen: "\x1b[32m",
-  FgYellow: "\x1b[33m",
-  FgBlue: "\x1b[34m",
-  FgMagenta: "\x1b[35m",
-  FgCyan: "\x1b[36m",
-  FgWhite: "\x1b[37m",
-};
+import { execute, exists, sleep } from "./modules/utils";
+import { COLORS } from "./modules/colors";
+import { checkOrCreateCert } from "./modules/ssl";
 
 const {
   REDIS_HOST,
@@ -40,11 +32,6 @@ const {
   PACKAGE_MANAGER,
 } = Configuration;
 
-const exists = async (path: string) =>
-  stat(path)
-    .then(() => true)
-    .catch(() => false);
-
 const getGitURL = (repository: string) =>
   `https://github.com/Kompakkt/${repository}.git`;
 
@@ -65,106 +52,7 @@ const SSL_ARGS = [
   getSSLPair().key,
 ];
 
-const sleep = (delay: number) =>
-  new Promise<void>((resolve, _) => setTimeout(() => resolve(), delay));
-
-type ExecuteOptions = {
-  command: string;
-  args: Array<string | number>;
-  name: string;
-  silent: boolean;
-  cwd: string;
-  shell: boolean;
-};
-const execute = (options: Partial<ExecuteOptions>) => {
-  const defaultOpts: ExecuteOptions = {
-    command: "",
-    args: [],
-    name: "PROCESS",
-    silent: true,
-    cwd: process.cwd(),
-    shell: false,
-  };
-  const { command, cwd, args, name, silent, shell } = {
-    ...defaultOpts,
-    ...options,
-  };
-  return new Promise((resolve, reject) => {
-    const stringArgs = args.map((arg) => String(arg));
-    const spawnOptions: SpawnOptions = { cwd, shell };
-    const ps = spawn(command, stringArgs, spawnOptions);
-    if (!silent)
-      ps.stdout?.on("data", (data) =>
-        console.log(
-          COLORS.FgMagenta,
-          `[${name}]`,
-          COLORS.FgWhite,
-          data.toString().trimEnd(),
-        ),
-      );
-    ps.stderr?.on("data", (data) =>
-      console.log(
-        COLORS.FgMagenta,
-        `[${name}]`,
-        COLORS.FgRed,
-        data.toString().trimEnd(),
-      ),
-    );
-    ps.on("close", (code) => {
-      console.log(
-        COLORS.FgMagenta,
-        `[${name}]`,
-        COLORS.FgYellow,
-        `${command} with args [${args.join(",")}] closed with code ${code}`,
-      );
-      code === 0 || code === null ? resolve("Success") : reject("Failure");
-    });
-  });
-};
-
 // Requirements
-const checkOrCreateCert = async () => {
-  const keyPath = join(__dirname, "key.pem");
-  const keyExists = await exists(keyPath);
-  const certPath = join(__dirname, "cert.pem");
-  const certExists = await exists(certPath);
-  const fullchainPath = join(__dirname, "fullchain.pem");
-
-  if (keyExists && certExists) {
-    console.log(COLORS.FgMagenta, "SSL key and cert already exist");
-    return;
-  }
-
-  const ca = await mkcert.createCA({
-    organization: "Kompakkt.Mono Dev",
-    countryCode: "DE",
-    state: "NRW",
-    locality: "Cologne",
-    validity: 365,
-  });
-
-  const cert = await mkcert.createCert({
-    domains: ["127.0.0.1", "localhost", "kompakkt.local"],
-    validity: 365,
-    ca: ca,
-    organization: "Kompakkt.Mono Dev",
-  });
-
-  return await Promise.all([
-    writeFile(keyPath, cert.key),
-    writeFile(certPath, cert.cert),
-    writeFile(fullchainPath, `${cert.cert}\n${ca.cert}`),
-  ])
-    .then(() => {
-      console.log(COLORS.FgGreen, "Created SSL key and cert");
-    })
-    .catch((err) => {
-      console.log(COLORS.FgRed, "Failed creating SSL key and cert");
-      console.log(err);
-      process.exit(1);
-    });
-};
-
 const checkRequirements = async () => {
   const check = (cmd: string) =>
     commandExists(cmd)
@@ -267,8 +155,12 @@ const installPackages = async () => {
   if (!SKIP_SERVER_INIT) {
     repos.push("Server");
   }
-  for (const repo of repos) await cloneAndInstall(repo);
-  return true;
+  return Promise.all(repos.map(cloneAndInstall))
+    .then(() => true)
+    .catch((err) => {
+      console.error(err);
+      return false;
+    });
 };
 
 // Run
@@ -393,7 +285,7 @@ const main = async () => {
     console.log(COLORS.FgGreen, "All requirements met");
   }
 
-  await checkOrCreateCert();
+  await checkOrCreateCert(__dirname);
 
   console.log(
     COLORS.FgYellow,
