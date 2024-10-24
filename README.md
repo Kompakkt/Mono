@@ -27,17 +27,16 @@ npm start
 
 ### Getting started
 
-Clone this repository recursively:
-`git clone --recursive https://github.com/Kompakkt/Mono.git Kompakkt.Mono`
+Clone this repository:
+`git clone https://github.com/Kompakkt/Mono.git Kompakkt.Mono`
 
-Change in to the cloned directory
-`cd Kompakkt.Mono`
+Change in to the cloned directory `cd Kompakkt.Mono`.
 
-Install required packages using `npm install`
+Install required packages using `npm install`.
 
-Open `configuration.js` in your favorite editor and configure the variables
+Open `configuration.ts` in your favorite editor and configure the variables.
 
-Run everything using `node run.js`
+Run everything using `npm start`.
 
 ### Note about SSL
 

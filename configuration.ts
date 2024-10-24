@@ -1,13 +1,13 @@
 // Note: there is no point in running this file by itself,,
 // as it only sets environment variables for the main script file
 
-module.exports = {
+export const Configuration = {
   // ############
   // ## SYSTEM ##
   // ############
   // Configure which package manager you would like to use.
   // Possible values could be f.e. 'npm', 'pnpm' or 'yarn'.
-  PACKAGE_MANAGER: 'npm',
+  PACKAGE_MANAGER: "npm",
 
   // #############
   // ## GENERAL ##
@@ -15,8 +15,8 @@ module.exports = {
   // By default, a local backend (Server, MongoDB & Redis) would be used to
   // run Kompakkt. If you want to use Mono against your own backend, you can
   // set the following option to 'true' and change the backend address
-  SKIP_SERVER_INIT: false,
-  BACKEND_URL: '',
+  SKIP_SERVER_INIT: true,
+  BACKEND_URL: "https://kompakkt.de/server/",
 
   // Configure the ports of the kompakkt services below
   SERVER_PORT: 8080,
@@ -24,7 +24,7 @@ module.exports = {
   REPO_PORT: 4200,
 
   // Change the session secret used for creating user sessions
-  SESSION_SECRET: 'changeme',
+  SESSION_SECRET: "changeme",
   // The session secret could also be pulled from an environment variable
   // or a file.
   // Example for environment variable based secret:
@@ -43,19 +43,19 @@ module.exports = {
   SILENT_DOCKER: true,
   // Docker version tags for MongoDB, Redis and MailHog
   DOCKER_TAGS: {
-    MONGO: '4.4',
-    REDIS: '6.2',
-    MAILHOG: 'v1.0.1',
+    MONGO: "4.4",
+    REDIS: "6.2",
+    MAILHOG: "v1.0.1",
   },
 
   // Configure how to connect to a redis instance.
   // No need for configuration when using docker.
-  REDIS_HOST: 'localhost',
+  REDIS_HOST: "localhost",
   REDIS_PORT: 6379,
 
   // Configure how to connect to MongoDB.
   // No need for configuration when using docker.
-  MONGO_URL: 'mongodb://localhost:27017',
+  MONGO_URL: "mongodb://localhost:27017",
   // Change this if you want to use a non-default port
   // for the MongoDB docker container.
   // Otherwise, no need for configuration.
@@ -74,15 +74,15 @@ module.exports = {
   // ##########
   // This section is configured to use MailHog by default.
   // You can change this to use your own SMTP Server
-  MAIL_HOST: 'localhost',
+  MAIL_HOST: "localhost",
   MAIL_PORT: 1025,
   MAIL_TARGETS: {
     // Contact requests will be sent to:
-    contact: 'contact@example.com',
+    contact: "contact@example.com",
     // Upload requests will be sent to:
-    upload: 'upload@example.com',
+    upload: "upload@example.com",
     // Bug reports will be sent to:
-    bugreport: 'bugreport@example.com',
+    bugreport: "bugreport@example.com",
   },
 
   // ##########
@@ -91,10 +91,11 @@ module.exports = {
   // The server can use LDAP authentication via passport-ldapauth
   // https://www.npmjs.com/package/passport-ldapauth
   // Some of the settings can be configured below
+  ENABLE_LDAP: false,
   LDAP: {
-    DN: '',
+    DN: "",
     DNauthUID: false,
-    Host: '',
-    searchBase: '',
-  }
+    Host: "",
+    searchBase: "",
+  },
 };

@@ -2,9 +2,9 @@
   "name": "kompakkt.mono",
   "version": "1.0.0",
   "description": "A collection of scripts to get a Kompakkt development environment up and running",
-  "main": "run.js",
+  "main": "run.ts",
   "scripts": {
-    "start": "node run.js"
+    "start": "tsx run.ts"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,10 @@
   },
   "homepage": "https://github.com/Kompakkt/Mono#readme",
   "devDependencies": {
+    "@types/command-exists": "^1.2.3",
+    "@types/node": "^22.7.9",
     "command-exists": "^1.2.9",
-    "mkcert": "^1.4.0"
+    "mkcert": "^3.2.0",
+    "tsx": "^4.19.1"
   }
 }
