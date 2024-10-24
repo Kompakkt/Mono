@@ -20,10 +20,11 @@ npm start
 ### Requirements
 
 - [NodeJS >= 14 and NPM >= 7](https://nodejs.org/en/download/) to run the scripts and the applications
-- [Global Angular CLI](https://angular.io/cli#installing-angular-cli)
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Angular CLI](https://angular.io/cli#installing-angular-cli)
-- [Docker](https://docs.docker.com/get-docker/) (Optional, **\*See note at the end**)
+  - Other package managers and runtimes may also work. See `configuration.ts` -> `PACKAGE_MANAGER`
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) for automatically pulling the latest Kompakkt repositories
+- [Docker](https://docs.docker.com/get-docker/)
+  - Optional if MongoDB and Redis are provided (**\*See note at the end**)
+  - Also optional if `SKIP_SERVER_INIT` is set to `true` in `configuration.ts`
 
 ### Getting started
 
@@ -48,4 +49,4 @@ Usually, you can proceed past this warning, but you can also add the generated `
 
 ### Note about Docker
 
-Docker is not a hard requirement, as it can be disabled and replaced in the `configuration.js` file, but, when disabled, Kompakkt expects instances of [MongoDB](https://www.mongodb.com/) and [Redis](https://redis.io/) to be available.
+Docker is not a hard requirement, as it can be disabled and replaced in the `configuration.ts` file, but, when disabled, Kompakkt expects instances of [MongoDB](https://www.mongodb.com/) and [Redis](https://redis.io/) to be available.

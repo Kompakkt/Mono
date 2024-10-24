@@ -166,17 +166,21 @@ const checkOrCreateCert = async () => {
 };
 
 const checkRequirements = async () => {
-  const check = (cmd) =>
+  const check = (cmd: string) =>
     commandExists(cmd)
       .then(() => {})
       .catch(() => `Could not find '${cmd}'`);
-
-  const commands = ["git", PACKAGE_MANAGER, "node", "docker", "ng"];
+  const commands = ["git", PACKAGE_MANAGER];
+  if (!SKIP_SERVER_INIT) {
+    commands.push("docker");
+  }
   return (await Promise.all(commands.map(check))).filter((_) => _);
 };
 
 // Configuration files
 const writeServerConfiguration = () => {
+  if (SKIP_SERVER_INIT) return Promise.resolve();
+
   const { key, cert } = getSSLPair();
   const config = {
     Mongo: {
@@ -259,7 +263,10 @@ const createConfigurationFiles = () => {
 };
 
 const installPackages = async () => {
-  const repos = ["Viewer", "Repo", "Server"];
+  const repos = ["Viewer", "Repo"];
+  if (!SKIP_SERVER_INIT) {
+    repos.push("Server");
+  }
   for (const repo of repos) await cloneAndInstall(repo);
   return true;
 };
@@ -267,9 +274,9 @@ const installPackages = async () => {
 // Run
 const runViewer = () => {
   const path = join(__dirname, "Viewer");
-  const args = ["serve", "--port", VIEWER_PORT, ...SSL_ARGS];
+  const args = ["run", "ng", "--", "serve", "--port", VIEWER_PORT, ...SSL_ARGS];
   return execute({
-    command: "ng",
+    command: PACKAGE_MANAGER,
     args,
     name: "VIEWER",
     cwd: path,
@@ -279,9 +286,9 @@ const runViewer = () => {
 
 const runRepo = () => {
   const path = join(__dirname, "Repo");
-  const args = ["serve", "--port", REPO_PORT, ...SSL_ARGS];
+  const args = ["run", "ng", "--", "serve", "--port", REPO_PORT, ...SSL_ARGS];
   return execute({
-    command: "ng",
+    command: PACKAGE_MANAGER,
     args,
     name: "REPO",
     cwd: path,
@@ -290,7 +297,7 @@ const runRepo = () => {
 };
 
 const runServer = () => {
-  if (SKIP_SERVER_INIT) return undefined;
+  if (SKIP_SERVER_INIT) return Promise.resolve();
   const path = join(__dirname, "Server");
   return execute({
     command: PACKAGE_MANAGER,
@@ -435,7 +442,7 @@ const main = async () => {
 };
 
 process.on("SIGINT", () => {
-  if (USE_DOCKER) {
+  if (USE_DOCKER && !SKIP_SERVER_INIT) {
     console.log(
       COLORS.FgYellow,
       "Interrupt detected. Shutting down containers",
