@@ -38,9 +38,7 @@ export const Configuration = {
   // By default docker will be used to host MongoDB, Redis and MailHog
   // To change this behaviour, disable docker below and configure
   // Redis and MongoDB to connect to other instances.
-  USE_DOCKER: true,
-  // Disable console output of docker containers
-  SILENT_DOCKER: true,
+  USE_COMPOSE: true,
 
   DOCKER_IMAGES: {
     REDIS_IMAGE: "docker.dragonflydb.io/dragonflydb/dragonfly:latest",
@@ -59,7 +57,7 @@ export const Configuration = {
   // Change this if you want to use a non-default port
   // for the MongoDB docker container.
   // Otherwise, no need for configuration.
-  MONGO_PORT: null,
+  MONGO_PORT: 27017,
 
   // Configure the MailHog SMTP server.
   // If you intend to change this, make sure to

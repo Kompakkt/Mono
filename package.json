@@ -4,8 +4,10 @@
   "description": "A collection of scripts to get a Kompakkt development environment up and running",
   "main": "run.ts",
   "scripts": {
-    "start": "tsx run.ts"
+    "start": "tsx run.ts",
+    "test": "playwright test"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kompakkt/Mono.git"
@@ -17,6 +19,8 @@
   },
   "homepage": "https://github.com/Kompakkt/Mono#readme",
   "devDependencies": {
+    "@faker-js/faker": "^9.2.0",
+    "@playwright/test": "^1.49.0",
     "@types/command-exists": "^1.2.3",
     "@types/node": "^22.7.9",
     "command-exists": "^1.2.9",

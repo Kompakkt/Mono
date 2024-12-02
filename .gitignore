@@ -139,3 +139,8 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+test-results/
+playwright/
+modules/tests/util/.*
+modules/tests/util/*.glb

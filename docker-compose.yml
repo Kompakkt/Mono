@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: ${MONGO_IMAGE}
+    container_name: kompakkt-mongo
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./.mongo-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", '''db.runCommand("ping").ok''']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: kompakkt-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    ulimits:
+      memlock: -1
+    command: ["--maxmemory=1gb", "--proactor_threads=1"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: ${MAILHOG_IMAGE}
+    container_name: kompakkt-mailhog
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    command: ["-smtp-bind-addr", ":1025"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1025"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: kompakkt-network
+
+volumes:
+  mongo-data:
+    name: kompakkt-mongo-data

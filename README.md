@@ -22,7 +22,7 @@ npm start
 - [NodeJS >= 14 and NPM >= 7](https://nodejs.org/en/download/) to run the scripts and the applications
   - Other package managers and runtimes may also work. See `configuration.ts` -> `PACKAGE_MANAGER`
 - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) for automatically pulling the latest Kompakkt repositories
-- [Docker](https://docs.docker.com/get-docker/)
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/)
   - Optional if MongoDB and Redis are provided (**\*See note at the end**)
   - Also optional if `SKIP_SERVER_INIT` is set to `true` in `configuration.ts`
 

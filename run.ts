@@ -1,26 +1,22 @@
-import { stat, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 
 import { Configuration } from "./configuration";
 import { join } from "node:path";
-import mkcert from "mkcert";
 import commandExists from "command-exists";
 import { execute, exists, sleep } from "./modules/utils";
 import { COLORS } from "./modules/colors";
 import { checkOrCreateCert } from "./modules/ssl";
+import { waitForServices } from "./modules/healthcheck";
 
 const {
   REDIS_HOST,
   REDIS_PORT,
   MONGO_URL,
-  MONGO_PORT,
-  USE_DOCKER,
-  SILENT_DOCKER,
+  USE_COMPOSE,
   SERVER_PORT,
   VIEWER_PORT,
   REPO_PORT,
   SESSION_SECRET,
-  MAILHOG_SMTP,
-  MAILHOG_HTTP,
   MAIL_HOST,
   MAIL_PORT,
   MAIL_TARGETS,
@@ -29,7 +25,6 @@ const {
   SKIP_SERVER_INIT,
   BACKEND_URL,
   PACKAGE_MANAGER,
-  DOCKER_IMAGES: { MAILHOG_IMAGE, MONGO_IMAGE, REDIS_IMAGE },
 } = Configuration;
 
 const getGitURL = (repository: string) =>
@@ -119,7 +114,7 @@ const writeEnvironmentFiles = () => {
 
   return Promise.all(
     ["Repo", "Viewer"]
-      .map((dir) => join(__dirname, dir, "src", "environments.ts"))
+      .map((dir) => join(__dirname, dir, "src", "environment.ts"))
       .map((path) => writeFile(path, config)),
   );
 };
@@ -200,69 +195,36 @@ const runServer = () => {
   });
 };
 
-const runRedis = () => {
-  const args = `run --name kompakkt-redis --rm -p 127.0.0.1:${REDIS_PORT}:6379 --ulimit memlock=-1 ${REDIS_IMAGE} --maxmemory=1gb --proactor_threads=1`;
-  return execute({
-    command: "docker",
-    args: args.split(" "),
-    name: "REDIS",
-    silent: SILENT_DOCKER,
-    shell: true,
-  });
-};
-
-const runMongo = () => {
-  const args = `run --name kompakkt-mongo --rm -v "$PWD/.mongo-data:/data/db" -p 127.0.0.1:${MONGO_PORT ?? 27017}:27017 ${MONGO_IMAGE} --quiet`;
-  return execute({
-    command: "docker",
-    args: args.split(" "),
-    name: "MONGO",
-    silent: SILENT_DOCKER,
-    shell: true,
-  });
-};
-
-const runMailHog = () => {
-  const args = `run --name kompakkt-mailhog --rm -p 127.0.0.1:${MAILHOG_SMTP}:${MAILHOG_SMTP} -p 127.0.0.1:${MAILHOG_HTTP}:${MAILHOG_HTTP} ${MAILHOG_IMAGE} -smtp-bind-addr :${MAILHOG_SMTP}`;
-  return execute({
-    command: "docker",
-    args: args.split(" "),
-    name: "MAILHOG",
-    silent: SILENT_DOCKER,
-    shell: true,
-  });
-};
-
-const shutdownContainers = () => {
-  return execute({
-    command: "docker",
-    args: "kill kompakkt-mongo kompakkt-redis kompakkt-mailhog".split(" "),
-    silent: false,
-    name: "KILL-CONTAINERS",
-  }).catch(() => {});
-};
-
 const pullImages = () => {
-  return Promise.all([
-    execute({
-      command: "docker",
-      args: ["pull", MONGO_IMAGE],
-      name: "DOCKER-IMAGES",
-      silent: false,
-    }),
-    execute({
-      command: "docker",
-      args: ["pull", REDIS_IMAGE],
-      name: "DOCKER-IMAGES",
-      silent: false,
-    }),
-    execute({
-      command: "docker",
-      args: ["pull", MAILHOG_IMAGE],
-      name: "DOCKER-IMAGES",
-      silent: false,
-    }),
-  ]);
+  return execute({
+    command: "docker-compose",
+    args: ["pull"],
+    name: "DOCKER-COMPOSE",
+    silent: false,
+  });
+};
+
+const runCompose = () => {
+  return execute({
+    command: "docker-compose",
+    args: ["up", "-d"],
+    name: "DOCKER-COMPOSE",
+    silent: false,
+  });
+};
+
+const convertConfigToEnv = () => {
+  const config = {
+    MONGO_URL: MONGO_URL,
+    REDIS_IMAGE: Configuration.DOCKER_IMAGES.REDIS_IMAGE,
+    MONGO_IMAGE: Configuration.DOCKER_IMAGES.MONGO_IMAGE,
+    MAILHOG_IMAGE: Configuration.DOCKER_IMAGES.MAILHOG_IMAGE,
+  };
+
+  const configAsString = Object.entries(config)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+  return writeFile(join(__dirname, ".env"), configAsString);
 };
 
 // Main
@@ -284,6 +246,8 @@ const main = async () => {
 
   await checkOrCreateCert(__dirname);
 
+  await convertConfigToEnv();
+
   console.log(
     COLORS.FgYellow,
     "Note: if the repositories have already been cloned, this does not pull the latest version",
@@ -300,27 +264,32 @@ const main = async () => {
   console.log(COLORS.FgCyan, "Writing configuration and environment files");
   await createConfigurationFiles();
 
-  if (USE_DOCKER) {
+  if (USE_COMPOSE) {
     if (!SKIP_SERVER_INIT) {
       console.log(
         COLORS.FgCyan,
         "Pulling docker images for MongoDB, Redis & MailHog",
       );
       await pullImages();
-      console.log(COLORS.FgCyan, "Starting MongoDB, Redis & MailHog");
-      Promise.all([runRedis(), runMongo(), runMailHog()]).catch((error) => {
+      console.log(COLORS.FgCyan, "Starting Docker Compose");
+      await runCompose().catch((error) => {
         console.log(COLORS.FgRed, "Execution failed");
-        shutdownContainers().then(() => process.exit(1));
+        process.exit(1);
       });
 
-      await sleep(10000);
+      try {
+        await waitForServices();
+      } catch (error) {
+        console.log(COLORS.FgRed, "Services failed to start");
+        process.exit(1);
+      }
     }
 
     console.log(COLORS.FgCyan, "Starting Kompakkt services");
 
     await Promise.all([runRepo(), runViewer(), runServer()]).catch((error) => {
       console.log(COLORS.FgRed, "Execution failed");
-      shutdownContainers().then(() => process.exit(1));
+      process.exit(1);
     });
   } else {
     console.log(COLORS.FgCyan, "Running Kompakkt services without docker");
@@ -329,18 +298,6 @@ const main = async () => {
     });
   }
 };
-
-process.on("SIGINT", () => {
-  if (USE_DOCKER && !SKIP_SERVER_INIT) {
-    console.log(
-      COLORS.FgYellow,
-      "Interrupt detected. Shutting down containers",
-    );
-    shutdownContainers()
-      .then(() => {})
-      .catch(() => {});
-  }
-});
 
 process.on("close", (code) => {
   console.log(COLORS.FgYellow, "Exiting Kompakkt.Mono", code);
