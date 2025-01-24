@@ -1,0 +1,67 @@
+services:
+  # Caddy is used as a reverse proxy
+  caddy:
+    image: caddy:alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - 127.0.0.1:8080:80
+
+  # Plugins need to be build first before being able to be used by Repo and Viewer
+  plugins:
+    image: docker.io/kompakkt/bun-base-image:latest
+    user: "${UID}:${GID}"
+    volumes:
+      - ./Plugins:/kompakkt/Plugins
+    working_dir: /kompakkt/Plugins
+    command: sh -c "bun install; bun run ci:build"
+
+  # Repo and Viewer have hot-reloading enabled by being mounted and served via ng serve
+  repo:
+    image: docker.io/kompakkt/bun-base-image:latest
+    volumes:
+      - ./Repo:/kompakkt/Repo
+      - ./Plugins:/kompakkt/Plugins
+      - ./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro
+    working_dir: /kompakkt/Repo
+    command: >
+      sh -c "sleep 10; bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
+  viewer:
+    image: docker.io/kompakkt/bun-base-image:latest
+    user: "${UID}:${GID}"
+    volumes:
+      - ./Viewer:/kompakkt/Viewer
+      - ./Plugins:/kompakkt/Plugins
+      - ./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro
+    working_dir: /kompakkt/Viewer
+    command: >
+      sh -c "sleep 10; bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
+
+  openldap-search:
+    image: ghcr.io/heyitsbatman/openldap-search-server:main
+  mongo:
+    image: docker.io/mvertes/alpine-mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+  redis:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    ulimits:
+      memlock: -1
+    command: --maxmemory=1gb --proactor_threads=1
+  mailhog:
+    image: mailhog/mailhog:latest
+  server:
+    image: docker.io/kompakkt/bun-base-image:latest
+    user: "${UID}:${GID}"
+    volumes:
+      - ./Server:/kompakkt/Server
+      - ./server-config.json:/kompakkt/Server/src/config.json:ro
+    depends_on:
+      - openldap-search
+      - mongo
+      - redis
+      - mailhog
+    working_dir: /kompakkt/Server
+    command: >
+      sh -c "bun install; bun run dev"

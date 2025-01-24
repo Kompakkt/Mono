@@ -1,0 +1,21 @@
+{
+    admin off
+}
+
+:80 {
+    # Viewer at /viewer
+    handle /viewer/* {
+        reverse_proxy viewer:4200
+    }
+
+    # Server at /server
+    handle /server/* {
+        uri strip_prefix /server
+        reverse_proxy server:3030
+    }
+
+    # Repo at root (/)
+    handle /* {
+        reverse_proxy repo:4200
+    }
+}

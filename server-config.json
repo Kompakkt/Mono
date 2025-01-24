@@ -1,0 +1,54 @@
+{
+  "Mongo": {
+    "RepositoryDB": "entitiesrepository",
+    "AccountsDB": "accounts",
+    "Port": 27017,
+    "Hostname": "mongo",
+    "ClientURL": "mongodb://mongo:27017/"
+  },
+  "Redis": {
+    "Hostname": "redis",
+    "Port": 6379,
+    "DBOffset": 1
+  },
+  "Uploads": {
+    "TempDirectory": "temp",
+    "UploadDirectory": "uploads"
+  },
+  "Express": {
+    "Host": "127.0.0.1",
+    "Port": 8080,
+    "OriginWhitelist": [],
+    "enableHTTPS": true,
+    "SSLPaths": {
+      "PrivateKey": "/home/niebesk/Projects/Kompakkt/Server/kompakkt.local+1-key.pem",
+      "Certificate": "/home/niebesk/Projects/Kompakkt/Server/kompakkt.local+1.pem"
+    },
+    "PassportSecret": "change me",
+    "LDAP": {
+      "DN": "ou=People,dc=uni-koeln,dc=de",
+      "DNauthUID": true,
+      "Host": "ldaps://ldapproxy-hvtzent-1.rrz.uni-koeln.de",
+      "searchBase": "ou=People,dc=uni-koeln,dc=de"
+    }
+  },
+  "Mailer": {
+    "Host": "localhost",
+    "Port": 1025,
+    "Target": {
+      "contact": "kompakkt@uni-koeln.de",
+      "upload": "kompakkt@uni-koeln.de",
+      "bugreport": "kompakkt@uni-koeln.de"
+    }
+  },
+  "Extensions": {
+    "Wikibase": {
+      "Domain": "wb.local",
+      "SPARQLEndpoint": "http://query.wb.local/proxy/wdqs/bigdata/namespace/wdq/sparql",
+      "Username": "Admin",
+      "Password": "changeme",
+      "AdminUsername": "Admin",
+      "AdminPassword": "changeme"
+    }
+  }
+}
