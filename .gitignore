@@ -2,3 +2,6 @@ Plugins
 Repo
 Viewer
 Server
+.eslintrc.js
+.prettierignore
+tsconfig.json
