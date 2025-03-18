@@ -9,7 +9,9 @@ services:
 
   # Plugins need to be build first before being able to be used by Repo and Viewer
   plugins:
-    image: docker.io/kompakkt/bun-base-image:latest
+    build:
+      context: .
+      dockerfile: bun-base-image.Dockerfile
     user: "${UID}:${GID}"
     volumes:
       - ./Plugins:/kompakkt/Plugins
@@ -20,7 +22,10 @@ services:
 
   # Repo and Viewer have hot-reloading enabled by being mounted and served via ng serve
   repo:
-    image: docker.io/kompakkt/bun-base-image:latest
+    build:
+      context: .
+      dockerfile: bun-base-image.Dockerfile
+    user: "${UID}:${GID}"
     volumes:
       - ./Repo:/kompakkt/Repo
       - ./Plugins:/kompakkt/Plugins
@@ -29,7 +34,9 @@ services:
     command: >
       sh -c "sleep 10; bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
   viewer:
-    image: docker.io/kompakkt/bun-base-image:latest
+    build:
+      context: .
+      dockerfile: bun-base-image.Dockerfile
     user: "${UID}:${GID}"
     volumes:
       - ./Viewer:/kompakkt/Viewer
@@ -46,6 +53,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - 127.0.0.1:37017:27017
   redis:
     image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
     ulimits:
@@ -53,17 +62,34 @@ services:
     command: --maxmemory=1gb --proactor_threads=1
   mailhog:
     image: mailhog/mailhog:latest
+  kompressor:
+    image: ghcr.io/kompakkt/kompressor:latest
+    user: "${UID}:${GID}"
+    volumes:
+      - uploads:/app/uploads
   server:
-    image: docker.io/kompakkt/bun-base-image:latest
+    build:
+      context: .
+      dockerfile: bun-base-image.Dockerfile
     user: "${UID}:${GID}"
     volumes:
       - ./Server:/kompakkt/Server
+      - uploads:/kompakkt/Server/src/uploads
       - ./server-config.json:/kompakkt/Server/src/config.json:ro
     depends_on:
       - openldap-search
       - mongo
       - redis
+      - kompressor
       - mailhog
     working_dir: /kompakkt/Server
     command: >
       sh -c "bun install; bun run dev"
+
+volumes:
+  uploads:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./uploads
+      o: bind

@@ -14,6 +14,10 @@
         reverse_proxy server:3030
     }
 
+    handle /swagger/* {
+        reverse_proxy server:3030
+    }
+
     # Repo at root (/)
     handle /* {
         reverse_proxy repo:4200

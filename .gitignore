@@ -2,6 +2,11 @@ Plugins
 Repo
 Viewer
 Server
+Processing
+Kompressor
+SKViewer
 .eslintrc.js
 .prettierignore
 tsconfig.json
+node_modules
+uploads
