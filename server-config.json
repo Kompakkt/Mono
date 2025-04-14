@@ -33,7 +33,7 @@
     }
   },
   "Mailer": {
-    "Host": "localhost",
+    "Host": "mailhog",
     "Port": 1025,
     "Target": {
       "contact": "kompakkt@uni-koeln.de",

@@ -7,19 +7,6 @@ services:
     ports:
       - 127.0.0.1:8080:80
 
-  # Plugins need to be build first before being able to be used by Repo and Viewer
-  plugins:
-    build:
-      context: .
-      dockerfile: bun-base-image.Dockerfile
-    user: "${UID}:${GID}"
-    volumes:
-      - ./Plugins:/kompakkt/Plugins
-    working_dir: /kompakkt/Plugins
-    command: sh -c "bun install; bun run ci:build"
-    profiles:
-      - donotrun
-
   # Repo and Viewer have hot-reloading enabled by being mounted and served via ng serve
   repo:
     build:
@@ -28,11 +15,10 @@ services:
     user: "${UID}:${GID}"
     volumes:
       - ./Repo:/kompakkt/Repo
-      - ./Plugins:/kompakkt/Plugins
       - ./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro
     working_dir: /kompakkt/Repo
     command: >
-      sh -c "sleep 10; bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
+      sh -c "bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
   viewer:
     build:
       context: .
@@ -40,11 +26,10 @@ services:
     user: "${UID}:${GID}"
     volumes:
       - ./Viewer:/kompakkt/Viewer
-      - ./Plugins:/kompakkt/Plugins
       - ./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro
     working_dir: /kompakkt/Viewer
     command: >
-      sh -c "sleep 10; bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
+      sh -c "bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
 
   openldap-search:
     image: ghcr.io/heyitsbatman/openldap-search-server:main
@@ -62,6 +47,8 @@ services:
     command: --maxmemory=1gb --proactor_threads=1
   mailhog:
     image: mailhog/mailhog:latest
+    ports:
+      - 127.0.0.1:8025:8025
   kompressor:
     image: ghcr.io/kompakkt/kompressor:latest
     user: "${UID}:${GID}"
@@ -82,6 +69,8 @@ services:
       - redis
       - kompressor
       - mailhog
+    ports:
+      - 127.0.0.1:8123:3030
     working_dir: /kompakkt/Server
     command: >
       sh -c "bun install; bun run dev"

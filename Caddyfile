@@ -3,6 +3,10 @@
 }
 
 :80 {
+    request_body {
+        max_size 4096MB
+    }
+
     # Viewer at /viewer
     handle /viewer/* {
         reverse_proxy viewer:4200
