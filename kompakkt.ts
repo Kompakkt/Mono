@@ -62,7 +62,7 @@ const setupRepos = async (): Promise<void> => {
 const setupBaseImage = async (): Promise<void> => {
   console.log("Setting up base image...");
   try {
-    await $`UID=$(id -u) GID=$(id -g) docker buildx build -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`;
+    await $`UID=$(id -u) GID=$(id -g) docker buildx build --no-cache -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`;
   } catch (error) {
     console.error(`Failed to build base image: ${error}`);
   }
