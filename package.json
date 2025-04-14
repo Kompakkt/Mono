@@ -1,0 +1,11 @@
+{
+  "name": "mono",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.14.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

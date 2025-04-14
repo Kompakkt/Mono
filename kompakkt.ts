@@ -2,11 +2,7 @@
 
 import { $ } from "bun";
 import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
 import { parseArgs } from "node:util";
-
-const UID = await $`id -u`.text();
-const GID = await $`id -g`.text();
 
 const typedObjectEntries = <T extends Record<string, any>>(
   obj: T,
@@ -66,9 +62,7 @@ const setupRepos = async (): Promise<void> => {
 const setupBaseImage = async (): Promise<void> => {
   console.log("Setting up base image...");
   try {
-    await $`docker buildx build -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`.env(
-      { UID, GID },
-    );
+    await $`UID=$(id -u) GID=$(id -g) docker buildx build -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`;
   } catch (error) {
     console.error(`Failed to build base image: ${error}`);
   }
@@ -77,7 +71,9 @@ const setupBaseImage = async (): Promise<void> => {
 const up = async (): Promise<void> => {
   console.log("Starting deployment...");
   try {
-    await $`docker compose up --build -d`.env({ UID, GID });
+    await $`UID=$(id -u) GID=$(id -g) docker compose up --build -d`.env({
+      COMPOSE_BAKE: "true",
+    });
   } catch (error) {
     console.error(`Failed to start deployment: ${error}`);
   }
@@ -86,7 +82,7 @@ const up = async (): Promise<void> => {
 const down = async (): Promise<void> => {
   console.log("Stopping deployment...");
   try {
-    await $`docker compose down`.env({ UID, GID });
+    await $`UID=$(id -u) GID=$(id -g) docker compose down`;
   } catch (error) {
     console.error(`Failed to stop deployment: ${error}`);
   }
@@ -95,7 +91,7 @@ const down = async (): Promise<void> => {
 const compose = async (args: string[]): Promise<void> => {
   console.log("Passing arguments to docker compose...");
   try {
-    await $`docker compose ${args.join(" ")}`.env({ UID, GID });
+    await $`UID=$(id -u) GID=$(id -g) docker compose ${args}`;
   } catch (error) {
     console.error(`Failed to pass arguments to docker compose: ${error}`);
   }
