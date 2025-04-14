@@ -88,6 +88,16 @@ const down = async (): Promise<void> => {
   }
 };
 
+const pull = async (): Promise<void> => {
+  console.log("Pulling images...");
+  try {
+    await $`UID=$(id -u) GID=$(id -g) docker pull docker.io/node:lts-slim`;
+    await $`UID=$(id -u) GID=$(id -g) docker compose pull`;
+  } catch (error) {
+    console.error(`Failed to pull images: ${error}`);
+  }
+};
+
 const compose = async (args: string[]): Promise<void> => {
   console.log("Passing arguments to docker compose...");
   try {
@@ -105,6 +115,7 @@ Commands:
 - setup     Setup repos and build base image
 - up        Start deployment
 - down      Stop deployment
+- pull      Pull docker images
 - compose   Pass arguments to docker compose
 `
       .trim()
@@ -151,6 +162,9 @@ if (positionalArgs.length === 0) {
       break;
     case "compose":
       await compose(positionalArgs.slice(1));
+      break;
+    case "pull":
+      await pull();
       break;
     default:
       console.error(`Unknown command: ${firstArg}`);
