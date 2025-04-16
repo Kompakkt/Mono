@@ -40,6 +40,8 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=password
     ports:
       - 127.0.0.1:37017:27017
+    volumes:
+      - mongodb_data:/data/db
   redis:
     image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
     ulimits:
@@ -82,3 +84,4 @@ volumes:
       type: none
       device: ./uploads
       o: bind
+  mongodb_data:

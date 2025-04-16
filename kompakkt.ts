@@ -1,8 +1,23 @@
 #! /usr/bin/env bun
 
 import { $ } from "bun";
-import { mkdir } from "node:fs/promises";
+import { mkdir, rmdir } from "node:fs/promises";
 import { parseArgs } from "node:util";
+
+const REPOS = {
+  Server: {
+    branch: "test-bun-runtime",
+    url: "https://github.com/Kompakkt/Server.git",
+  },
+  Repo: {
+    branch: "debug-plugin-test",
+    url: "https://github.com/Kompakkt/Repo.git",
+  },
+  Viewer: {
+    branch: "debug-plugin-test",
+    url: "https://github.com/Kompakkt/Viewer.git",
+  },
+} as const;
 
 const typedObjectEntries = <T extends Record<string, any>>(
   obj: T,
@@ -34,22 +49,7 @@ const checkDependencies = async (): Promise<void> => {
 };
 
 const setupRepos = async (): Promise<void> => {
-  const repos = {
-    Server: {
-      branch: "test-bun-runtime",
-      url: "https://github.com/Kompakkt/Server.git",
-    },
-    Repo: {
-      branch: "debug-plugin-test",
-      url: "https://github.com/Kompakkt/Repo.git",
-    },
-    Viewer: {
-      branch: "debug-plugin-test",
-      url: "https://github.com/Kompakkt/Viewer.git",
-    },
-  } as const;
-
-  for (const [name, { url, branch }] of typedObjectEntries(repos)) {
+  for (const [name, { url, branch }] of typedObjectEntries(REPOS)) {
     console.log(`Cloning ${name}...`);
     try {
       await $`git clone --recurse-submodules -j8 -b ${branch} ${url} ${name}`;
@@ -107,6 +107,23 @@ const compose = async (args: string[]): Promise<void> => {
   }
 };
 
+const clean = async (): Promise<void> => {
+  console.log(
+    "Stopping deployment and removing cloned repositories and volumes...",
+  );
+  try {
+    await $`UID=$(id -u) GID=$(id -g) docker compose down`;
+    await $`UID=$(id -u) GID=$(id -g) docker compose rm -v`;
+    for (const [name, { url, branch }] of typedObjectEntries(REPOS)) {
+      await rmdir(`${name}`, { recursive: true });
+    }
+  } catch (error) {
+    console.error(
+      `Failed to stop deployment and remove cloned repositories and volumes: ${error}`,
+    );
+  }
+};
+
 const printUsage = () => {
   console.log(
     `
@@ -117,6 +134,7 @@ Commands:
 - down      Stop deployment
 - pull      Pull docker images
 - compose   Pass arguments to docker compose
+- clean     Stop deployment and remove cloned repositories and volumes
 `
       .trim()
       .split("\n")
@@ -165,6 +183,9 @@ if (positionalArgs.length === 0) {
       break;
     case "pull":
       await pull();
+      break;
+    case "clean":
+      await clean();
       break;
     default:
       console.error(`Unknown command: ${firstArg}`);
