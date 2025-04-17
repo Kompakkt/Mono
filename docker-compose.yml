@@ -4,6 +4,8 @@ services:
     image: caddy:alpine
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./Repo:/srv/repo:ro
+      - ./Viewer:/srv/viewer:ro
     ports:
       - 127.0.0.1:8080:80
 
@@ -18,7 +20,7 @@ services:
       - ./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro
     working_dir: /kompakkt/Repo
     command: >
-      sh -c "bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
+      sh -c "bun install; bun run ng build --watch"
   viewer:
     build:
       context: .
@@ -29,7 +31,7 @@ services:
       - ./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro
     working_dir: /kompakkt/Viewer
     command: >
-      sh -c "bun install; bun run ng serve --disable-host-check --host 0.0.0.0"
+      sh -c "bun install; bun run ng build --watch"
 
   openldap-search:
     image: ghcr.io/heyitsbatman/openldap-search-server:main

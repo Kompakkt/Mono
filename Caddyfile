@@ -9,7 +9,11 @@
 
     # Viewer at /viewer
     handle /viewer/* {
-        reverse_proxy viewer:4200
+        # reverse_proxy viewer:4200
+        uri strip_prefix /viewer
+        root * /srv/viewer/dist/viewer/browser
+        try_files {path} {path}/ /index.html
+        file_server
     }
 
     # Server at /server
@@ -24,6 +28,9 @@
 
     # Repo at root (/)
     handle /* {
-        reverse_proxy repo:4200
+        # reverse_proxy repo:4200
+        root * /srv/repo/dist/repo/browser
+        try_files {path} {path}/ /index.html
+        file_server
     }
 }
