@@ -6,15 +6,15 @@ import { parseArgs } from "node:util";
 
 const REPOS = {
   Server: {
-    branch: "test-bun-runtime",
+    branch: "main",
     url: "https://github.com/Kompakkt/Server.git",
   },
   Repo: {
-    branch: "debug-plugin-test",
+    branch: "main",
     url: "https://github.com/Kompakkt/Repo.git",
   },
   Viewer: {
-    branch: "debug-plugin-test",
+    branch: "main",
     url: "https://github.com/Kompakkt/Viewer.git",
   },
 } as const;
