@@ -59,6 +59,26 @@ const setupRepos = async (): Promise<void> => {
   }
 };
 
+const updateRepos = async (): Promise<void> => {
+  for (const [name, { url, branch }] of typedObjectEntries(REPOS)) {
+    console.log(`Updating ${name}...`);
+    try {
+      await $`git -C ${name} pull`;
+    } catch (error) {
+      console.error(`Failed to update ${name}: ${error}`);
+    }
+  }
+};
+
+const updateBaseImage = async (): Promise<void> => {
+  console.log("Updating base image...");
+  try {
+    await $`UID=$(id -u) GID=$(id -g) docker buildx build --no-cache -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`;
+  } catch (error) {
+    console.error(`Failed to update base image: ${error}`);
+  }
+};
+
 const setupBaseImage = async (): Promise<void> => {
   console.log("Setting up base image...");
   try {
@@ -130,6 +150,7 @@ const printUsage = () => {
 Usage: kompakkt [command]
 Commands:
 - setup     Setup repos and build base image
+- update    Update repos and rebuild base image
 - up        Start deployment
 - down      Stop deployment
 - pull      Pull docker images
@@ -171,6 +192,9 @@ if (positionalArgs.length === 0) {
         setupBaseImage(),
         setupRepos(),
       ]);
+      break;
+    case "update":
+      await Promise.all([updateBaseImage(), updateRepos()]);
       break;
     case "up":
       await up();
