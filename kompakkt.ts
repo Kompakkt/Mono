@@ -12,11 +12,11 @@ const REPOS = {
     url: "https://github.com/Kompakkt/Server.git",
   },
   Repo: {
-    branch: "main",
+    branch: "sk-main",
     url: "https://github.com/Kompakkt/Repo.git",
   },
   Viewer: {
-    branch: "main",
+    branch: "sk-main",
     url: "https://github.com/Kompakkt/Viewer.git",
   },
 } as const;
