@@ -35,6 +35,11 @@ services:
 
   openldap-search:
     image: ghcr.io/heyitsbatman/openldap-search-server:main
+  sonic:
+    image: docker.io/valeriansaliou/sonic:latest
+    volumes:
+      - sonic_data:/var/lib/sonic/store/
+      - ./sonic-config.cfg:/etc/sonic.cfg:ro
   mongo:
     image: docker.io/mvertes/alpine-mongo:latest
     environment:
@@ -89,3 +94,4 @@ volumes:
       device: ./uploads
       o: bind
   mongodb_data:
+  sonic_data:
