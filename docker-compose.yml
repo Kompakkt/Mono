@@ -64,6 +64,7 @@ services:
     volumes:
       - uploads:/app/uploads
   server:
+    env_file: .env
     build:
       context: .
       dockerfile: bun-base-image.Dockerfile

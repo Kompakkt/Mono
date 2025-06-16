@@ -12,3 +12,4 @@ tsconfig.json
 node_modules
 uploads
 test-results
+.env

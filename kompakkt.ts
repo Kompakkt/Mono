@@ -88,9 +88,22 @@ const setupBaseImage = async (): Promise<void> => {
   }
 };
 
+const ensureEnvFile = async (): Promise<void> => {
+  const envFileExists = await Bun.file(".env").exists();
+  if (!envFileExists) {
+    console.log("Creating .env file...");
+    try {
+      await Bun.file(".env").write(`# Kompakkt environment variables\n`);
+    } catch (error) {
+      console.error(`Failed to create .env file: ${error}`);
+    }
+  }
+};
+
 const up = async (): Promise<void> => {
   console.log("Starting deployment...");
   try {
+    await ensureEnvFile();
     await $`UID=$(id -u) GID=$(id -g) docker compose up --build -d`.env({
       COMPOSE_BAKE: "true",
     });
