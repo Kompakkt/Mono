@@ -41,6 +41,9 @@
       "bugreport": "kompakkt@uni-koeln.de"
     }
   },
+  "Server": {
+  	"PublicURL": "http://localhost:8080"
+  },
   "Extensions": {
     "Wikibase": {
       "Domain": "wb.local",

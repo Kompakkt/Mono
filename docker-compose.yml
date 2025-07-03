@@ -42,6 +42,7 @@ services:
       - ./sonic-config.cfg:/etc/sonic.cfg:ro
   mongo:
     image: docker.io/mvertes/alpine-mongo:latest
+    # image: docker.io/mongo:8-noble
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
@@ -87,6 +88,24 @@ services:
     working_dir: /kompakkt/Server
     command: >
       sh -c "bun install; bun run dev"
+  # Tools
+  mongo-tools:
+    image: docker.io/mongo:8-noble
+    profiles: ["tools"]
+    volumes:
+      - mongodb_data:/data/db
+      - ./backups:/backups
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    entrypoint: ["/bin/sh"]
+    command:
+      [
+        "-c",
+        "echo 'Use: docker compose --profile tools run --rm mongo-tools dump|restore [path]'",
+      ]
 
 volumes:
   uploads:
