@@ -41,8 +41,9 @@ services:
       - sonic_data:/var/lib/sonic/store/
       - ./sonic-config.cfg:/etc/sonic.cfg:ro
   mongo:
-    image: docker.io/mvertes/alpine-mongo:latest
-    # image: docker.io/mongo:8-noble
+    # Old image
+    # image: docker.io/mvertes/alpine-mongo:latest
+    image: docker.io/mongo:8-noble
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
