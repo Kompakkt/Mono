@@ -20,7 +20,7 @@ services:
       - ./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro
     working_dir: /kompakkt/Repo
     command: >
-      sh -c "bun install; bun run ng build --watch"
+      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
   viewer:
     build:
       context: .
@@ -31,7 +31,7 @@ services:
       - ./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro
     working_dir: /kompakkt/Viewer
     command: >
-      sh -c "bun install; bun run ng build --watch"
+      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
 
   openldap-search:
     image: ghcr.io/heyitsbatman/openldap-search-server:main
@@ -75,6 +75,8 @@ services:
       - ./Server:/kompakkt/Server
       - uploads:/kompakkt/Server/src/uploads
       - ./server-config.json:/kompakkt/Server/src/config.json:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
     depends_on:
       - openldap-search
       - mongo
@@ -88,7 +90,7 @@ services:
       - host.docker.internal:host-gateway
     working_dir: /kompakkt/Server
     command: >
-      sh -c "bun install; bun run dev"
+      sh -c "bun install --frozen-lockfile; bun run dev"
   # Tools
   mongo-tools:
     image: docker.io/mongo:8-noble

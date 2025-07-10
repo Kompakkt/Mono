@@ -104,9 +104,11 @@ const up = async (): Promise<void> => {
   console.log("Starting deployment...");
   try {
     await ensureEnvFile();
-    await $`UID=$(id -u) GID=$(id -g) docker compose up --build -d`.env({
-      COMPOSE_BAKE: "true",
-    });
+    await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up --build -d`.env(
+      {
+        COMPOSE_BAKE: "true",
+      },
+    );
   } catch (error) {
     console.error(`Failed to start deployment: ${error}`);
   }
@@ -162,13 +164,15 @@ const printUsage = () => {
     `
 Usage: kompakkt [command]
 Commands:
-- setup     Setup repos and build base image
-- update    Update repos and rebuild base image
-- up        Start deployment
-- down      Stop deployment
-- pull      Pull docker images
-- compose   Pass arguments to docker compose
-- clean     Stop deployment and remove cloned repositories and volumes
+- setup               Setup repos and build base image
+- update              Update repos and rebuild base image
+- update-base-image   Update base image
+- update-repos        Update repositories
+- up                  Start deployment
+- down                Stop deployment
+- pull                Pull docker images
+- compose             Pass arguments to docker compose
+- clean               Stop deployment and remove cloned repositories and volumes
 `
       .trim()
       .split("\n")
@@ -208,6 +212,12 @@ if (positionalArgs.length === 0) {
       break;
     case "update":
       await Promise.all([updateBaseImage(), updateRepos()]);
+      break;
+    case "update-base-image":
+      await updateBaseImage();
+      break;
+    case "update-repos":
+      await updateRepos();
       break;
     case "up":
       await up();

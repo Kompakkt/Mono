@@ -18,13 +18,13 @@
 
     # Server at /server
     handle /server/* {
-        uri strip_prefix /server
+        #uri strip_prefix /server
         reverse_proxy server:3030
     }
 
-    handle /swagger/* {
-        reverse_proxy server:3030
-    }
+    #handle /swagger/* {
+        #reverse_proxy server:3030
+    #}
 
     # Repo at root (/)
     handle /* {
