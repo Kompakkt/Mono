@@ -1,36 +1,50 @@
 {
-    admin off
+	admin off
 }
 
 :80 {
-    request_body {
-        max_size 4096MB
-    }
+	request_body {
+		max_size 4096MB
+	}
 
-    # Viewer at /viewer
-    handle /viewer/* {
-        # reverse_proxy viewer:4200
-        uri strip_prefix /viewer
-        root * /srv/viewer/dist/viewer/browser
-        try_files {path} {path}/ /index.html
-        file_server
-    }
+	# Security headers
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://assets.babylonjs.com;"
 
-    # Server at /server
-    handle /server/* {
-        #uri strip_prefix /server
-        reverse_proxy server:3030
-    }
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "no-referrer"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
-    #handle /swagger/* {
-        #reverse_proxy server:3030
-    #}
+		# Remove server information
+		-Server
+	}
 
-    # Repo at root (/)
-    handle /* {
-        # reverse_proxy repo:4200
-        root * /srv/repo/dist/repo/browser
-        try_files {path} {path}/ /index.html
-        file_server
-    }
+	# Viewer at /viewer
+	handle /viewer/* {
+		# reverse_proxy viewer:4200
+		uri strip_prefix /viewer
+		root * /srv/viewer/dist/viewer/browser
+		try_files {path} {path}/ /index.html
+		file_server
+	}
+
+	# Server at /server
+	handle /server/* {
+		#uri strip_prefix /server
+		reverse_proxy server:3030
+	}
+
+	#handle /swagger/* {
+	#reverse_proxy server:3030
+	#}
+
+	# Repo at root (/)
+	handle /* {
+		# reverse_proxy repo:4200
+		root * /srv/repo/dist/repo/browser
+		try_files {path} {path}/ /index.html
+		file_server
+	}
 }
