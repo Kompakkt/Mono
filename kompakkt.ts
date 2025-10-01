@@ -4,6 +4,8 @@ import { $ } from "bun";
 import { mkdir, rmdir } from "node:fs/promises";
 import { parseArgs } from "node:util";
 
+const BASE_IMAGE_TAG = "kompakkt/bun-base-image:latest";
+
 const REPOS = {
   Server: {
     branch: "main",
@@ -48,6 +50,50 @@ const checkDependencies = async (): Promise<void> => {
   }
 };
 
+const baseImageExists = async (): Promise<boolean> => {
+  try {
+    const result = await $`docker images -q ${BASE_IMAGE_TAG}`.text();
+    return result.trim().length > 0;
+  } catch {
+    return false;
+  }
+};
+
+const getBaseImageAge = async (): Promise<number | null> => {
+  try {
+    const result =
+      await $`docker inspect --format='{{.Created}}' ${BASE_IMAGE_TAG}`.text();
+    const createdDate = new Date(result.trim());
+    const now = new Date();
+    const ageInDays =
+      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+    return ageInDays;
+  } catch {
+    return null;
+  }
+};
+
+const isBaseImageOld = async (): Promise<boolean> => {
+  const age = await getBaseImageAge();
+  return age !== null && age > 7;
+};
+
+const shouldUpdateBaseImage = async (): Promise<boolean> => {
+  const exists = await baseImageExists();
+  if (!exists) {
+    console.log("Base image doesn't exist, will build it...");
+    return true;
+  }
+
+  const isOld = await isBaseImageOld();
+  if (isOld) {
+    console.log("Base image is older than 7 days, will update it...");
+    return true;
+  }
+
+  return false;
+};
+
 const setupRepos = async (): Promise<void> => {
   for (const [name, { url, branch }] of typedObjectEntries(REPOS)) {
     console.log(`Cloning ${name}...`);
@@ -70,21 +116,12 @@ const updateRepos = async (): Promise<void> => {
   }
 };
 
-const updateBaseImage = async (): Promise<void> => {
-  console.log("Updating base image...");
+const updateBaseImage = async (reason = "Updating"): Promise<void> => {
+  console.log(`${reason} base image...`);
   try {
-    await $`UID=$(id -u) GID=$(id -g) docker buildx build --no-cache -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`;
+    await $`UID=$(id -u) GID=$(id -g) docker buildx build --no-cache -t ${BASE_IMAGE_TAG} -f bun-base-image.Dockerfile .`.quiet();
   } catch (error) {
-    console.error(`Failed to update base image: ${error}`);
-  }
-};
-
-const setupBaseImage = async (): Promise<void> => {
-  console.log("Setting up base image...");
-  try {
-    await $`UID=$(id -u) GID=$(id -g) docker buildx build --no-cache -t kompakkt/bun-base-image:latest -f bun-base-image.Dockerfile .`;
-  } catch (error) {
-    console.error(`Failed to build base image: ${error}`);
+    console.error(`Failed ${reason.toLowerCase()} base image: ${error}`);
   }
 };
 
@@ -104,6 +141,11 @@ const up = async (): Promise<void> => {
   console.log("Starting deployment...");
   try {
     await ensureEnvFile();
+
+    if (await shouldUpdateBaseImage()) {
+      await updateBaseImage("Setting up");
+    }
+
     await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up --build -d`.env(
       {
         COMPOSE_BAKE: "true",
@@ -125,9 +167,18 @@ const down = async (): Promise<void> => {
 
 const pull = async (): Promise<void> => {
   console.log("Pulling images...");
+  const dockerComposeContent = await Bun.file("docker-compose.yml").text();
+  const { services: serviceMap } = Bun.YAML.parse(dockerComposeContent) as {
+    services: Record<string, { image?: string }>;
+  };
+  const serviceNames = Object.entries(serviceMap)
+    .filter(
+      ([key, value]) => !!value.image && !value.image.includes(BASE_IMAGE_TAG),
+    )
+    .map(([key]) => key);
   try {
     await $`UID=$(id -u) GID=$(id -g) docker pull docker.io/node:lts-slim`;
-    await $`UID=$(id -u) GID=$(id -g) docker compose pull`;
+    await $`UID=$(id -u) GID=$(id -g) docker compose pull ${serviceNames}`;
   } catch (error) {
     console.error(`Failed to pull images: ${error}`);
   }
@@ -159,6 +210,10 @@ const clean = async (): Promise<void> => {
   }
 };
 
+const logs = async (services: string[]) => {
+  await $`UID=$(id -u) GID=$(id -g) docker compose logs ${services} -f --no-log-prefix`;
+};
+
 const printUsage = () => {
   console.log(
     `
@@ -168,11 +223,12 @@ Commands:
 - update              Update repos and rebuild base image
 - update-base-image   Update base image
 - update-repos        Update repositories
-- up                  Start deployment
+- up                  Start deployment (auto-builds/updates base image if needed)
 - down                Stop deployment
 - pull                Pull docker images
 - compose             Pass arguments to docker compose
 - clean               Stop deployment and remove cloned repositories and volumes
+- logs [services]     Follow logs of specified services (default: all services)
 `
       .trim()
       .split("\n")
@@ -206,7 +262,7 @@ if (positionalArgs.length === 0) {
     case "setup":
       await Promise.all([
         mkdir("uploads/", { recursive: true }),
-        setupBaseImage(),
+        updateBaseImage("Setting up"),
         setupRepos(),
       ]);
       break;
@@ -233,6 +289,10 @@ if (positionalArgs.length === 0) {
       break;
     case "clean":
       await clean();
+      break;
+    case "logs":
+      const services = positionalArgs;
+      await logs(services.slice(1));
       break;
     default:
       console.error(`Unknown command: ${firstArg}`);

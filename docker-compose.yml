@@ -1,82 +1,59 @@
 services:
   # Caddy is used as a reverse proxy
   caddy:
-    image: caddy:alpine
+    image: "caddy:2-alpine"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./Repo:/srv/repo:ro
-      - ./Viewer:/srv/viewer:ro
+      - "./Caddyfile:/etc/caddy/Caddyfile"
+      - "./Repo:/srv/repo:ro"
+      - "./Viewer:/srv/viewer:ro"
     ports:
-      - 127.0.0.1:8080:80
+      - "127.0.0.1:8080:80"
 
-  # Repo and Viewer have hot-reloading enabled by being mounted and served via ng serve
-  repo:
-    build:
-      context: .
-      dockerfile: bun-base-image.Dockerfile
-    user: "${UID}:${GID}"
-    volumes:
-      - ./Repo:/kompakkt/Repo
-      - ./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro
-    working_dir: /kompakkt/Repo
-    command: >
-      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
-  viewer:
-    build:
-      context: .
-      dockerfile: bun-base-image.Dockerfile
-    user: "${UID}:${GID}"
-    volumes:
-      - ./Viewer:/kompakkt/Viewer
-      - ./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro
-    working_dir: /kompakkt/Viewer
-    command: >
-      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
-
+  # Supporting services
   openldap-search:
-    image: ghcr.io/heyitsbatman/openldap-search-server:main
+    image: "ghcr.io/heyitsbatman/openldap-search-server:main"
   sonic:
-    image: docker.io/valeriansaliou/sonic:latest
+    image: "docker.io/valeriansaliou/sonic:latest"
     volumes:
-      - sonic_data:/var/lib/sonic/store/
-      - ./sonic-config.cfg:/etc/sonic.cfg:ro
+      - "sonic_data:/var/lib/sonic/store/"
+      - "./sonic-config.cfg:/etc/sonic.cfg:ro"
   mongo:
-    # Old image
-    # image: docker.io/mvertes/alpine-mongo:latest
-    image: docker.io/mongo:8-noble
+    image: "docker.io/mongo:8-noble"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
     ports:
-      - 127.0.0.1:37017:27017
+      - "127.0.0.1:37017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - "mongodb_data:/data/db"
   redis:
-    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly:latest"
     ulimits:
       memlock: -1
-    command: --maxmemory=1gb --proactor_threads=1
-  mailhog:
-    image: mailhog/mailhog:latest
+    command: "--maxmemory=1gb --proactor_threads=1"
     ports:
-      - 127.0.0.1:8025:8025
+      - "127.0.0.1:6379:6379"
+  mailhog:
+    image: "mailhog/mailhog:latest"
+    ports:
+      - "127.0.0.1:8025:8025"
   kompressor:
-    image: ghcr.io/kompakkt/kompressor:latest
+    image: "ghcr.io/kompakkt/kompressor:latest"
     user: "${UID}:${GID}"
     volumes:
-      - uploads:/app/uploads
+      - "uploads:/app/uploads"
+
+  # Kompakkt services
   server:
     env_file: .env
-    build:
-      context: .
-      dockerfile: bun-base-image.Dockerfile
+    image: kompakkt/bun-base-image:latest
     user: "${UID}:${GID}"
     volumes:
-      - ./Server:/kompakkt/Server
-      - uploads:/kompakkt/Server/src/uploads
-      - ./server-config.json:/kompakkt/Server/src/config.json:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
+      - "./Server:/kompakkt/Server"
+      - "uploads:/kompakkt/Server/src/uploads"
+      - "./server-config.json:/kompakkt/Server/src/config.json:ro"
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
     depends_on:
       - openldap-search
       - mongo
@@ -85,30 +62,34 @@ services:
       - kompressor
       - mailhog
     ports:
-      - 127.0.0.1:8123:3030
+      - "127.0.0.1:8123:3030"
     extra_hosts:
-      - host.docker.internal:host-gateway
+      - "host.docker.internal:host-gateway"
     working_dir: /kompakkt/Server
-    command: >
+    command: |
       sh -c "bun install --frozen-lockfile; bun run dev"
-  # Tools
-  mongo-tools:
-    image: docker.io/mongo:8-noble
-    profiles: ["tools"]
-    volumes:
-      - mongodb_data:/data/db
-      - ./backups:/backups
+  repo:
+    image: kompakkt/bun-base-image:latest
     depends_on:
-      - mongo
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
-    entrypoint: ["/bin/sh"]
-    command:
-      [
-        "-c",
-        "echo 'Use: docker compose --profile tools run --rm mongo-tools dump|restore [path]'",
-      ]
+      - server
+    user: "${UID}:${GID}"
+    volumes:
+      - "./Repo:/kompakkt/Repo"
+      - "./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro"
+    working_dir: /kompakkt/Repo
+    command: |
+      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
+  viewer:
+    image: kompakkt/bun-base-image:latest
+    depends_on:
+      - server
+    user: "${UID}:${GID}"
+    volumes:
+      - "./Viewer:/kompakkt/Viewer"
+      - "./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro"
+    working_dir: /kompakkt/Viewer
+    command: |
+      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
 
 volumes:
   uploads:
@@ -117,5 +98,5 @@ volumes:
       type: none
       device: ./uploads
       o: bind
-  mongodb_data:
-  sonic_data:
+  mongodb_data: null
+  sonic_data: null
