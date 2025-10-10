@@ -9,7 +9,9 @@
 
 	# Security headers
 	header {
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.babylonjs.com https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://assets.babylonjs.com https://cdn.babylonjs.com https://cdn.jsdelivr.net"
+	    -Content-Security-Policy
+		Reporting-Endpoints csp-endpoint="{$CADDY_REPORTING_DOMAIN}/server/csp-report"
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.babylonjs.com https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://assets.babylonjs.com https://cdn.babylonjs.com https://cdn.jsdelivr.net; report-uri {$CADDY_REPORTING_DOMAIN}/server/csp-report; report-to csp-endpoint;"
 
 		X-Content-Type-Options "nosniff"
 		X-XSS-Protection "1; mode=block"

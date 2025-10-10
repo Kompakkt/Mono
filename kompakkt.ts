@@ -135,6 +135,22 @@ const ensureEnvFile = async (): Promise<void> => {
       console.error(`Failed to create .env file: ${error}`);
     }
   }
+
+  const envContent = await Bun.file(".env").text();
+  const lines = envContent.split("\n");
+  if (!lines.some((line) => line.includes("CADDY_REPORTING_DOMAIN"))) {
+    console.log("Adding CADDY_REPORTING_DOMAIN to .env file...");
+    lines.push(
+      "# Automatically added, change this to the actual domain you want to send CSP reports to",
+      "CADDY_REPORTING_DOMAIN=https://kompakkt.de",
+    );
+
+    try {
+      await Bun.file(".env").write(lines.join("\n") + "\n");
+    } catch (error) {
+      console.error(`Failed to update .env file: ${error}`);
+    }
+  }
 };
 
 const up = async (): Promise<void> => {

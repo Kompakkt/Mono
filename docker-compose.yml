@@ -8,6 +8,8 @@ services:
       - "./Viewer:/srv/viewer:ro"
     ports:
       - "127.0.0.1:8080:80"
+    environment:
+      - CADDY_REPORTING_DOMAIN=${CADDY_REPORTING_DOMAIN:-"https://kompakkt.de"}
 
   # Supporting services
   openldap-search:
