@@ -18,17 +18,13 @@
 
 		# Remove server information
 		-Server
-	}
 
-	# Prevent HTML content from being cached
-	@html {
-		header_regexp Content-Type text/html.*
-	}
-
-	header @html {
-		Cache-Control "no-cache, no-store, must-revalidate"
-		Pragma "no-cache"
-		Expires "0"
+		# Prevent caching for HTML responses
+		?Content-Type text/html* {
+			Cache-Control "no-cache, no-store, must-revalidate"
+			Pragma "no-cache"
+			Expires "0"
+		}
 	}
 
 	# Viewer at /viewer
