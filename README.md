@@ -21,7 +21,7 @@ A collection of scripts to get a Kompakkt development environment up and running
 
 1. Clone this repository:
    ```bash
-   git clone -b feature-plugin-deployment https://github.com/Kompakkt/Mono.git
+   git clone https://github.com/Kompakkt/Mono.git
    cd Mono
    ```
 
