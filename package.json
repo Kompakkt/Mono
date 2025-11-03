@@ -6,12 +6,12 @@
     "test": "playwright test"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.7.0",
-    "@playwright/test": "^1.51.1",
+    "@faker-js/faker": "^9.9.0",
+    "@playwright/test": "^1.56.1",
     "@types/bun": "latest",
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.19.0"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.8.3"
   }
 }
