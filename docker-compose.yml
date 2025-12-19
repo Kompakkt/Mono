@@ -44,11 +44,15 @@ services:
     user: "${UID}:${GID}"
     volumes:
       - "uploads:/app/uploads"
+  preview-gen:
+    image: "ghcr.io/kompakkt/previewgen:main"
+    environment:
+      - PREVIEW_GEN_PORT=14841
 
   # Kompakkt services
   server:
     env_file: .env
-    image: kompakkt/bun-base-image:latest
+    image: docker.io/oven/bun:alpine
     user: "${UID}:${GID}"
     volumes:
       - "./Server:/kompakkt/Server"
@@ -62,6 +66,7 @@ services:
       - redis
       - sonic
       - kompressor
+      - preview-gen
       - mailhog
     ports:
       - "127.0.0.1:8123:3030"
@@ -69,9 +74,11 @@ services:
       - "host.docker.internal:host-gateway"
     working_dir: /kompakkt/Server
     command: |
-      sh -c "bun install --frozen-lockfile; bun run dev"
+      sh -c "bun install; bun run dev"
+    environment:
+      - PREVIEW_GEN_PORT=14841
   repo:
-    image: kompakkt/bun-base-image:latest
+    image: docker.io/oven/bun:alpine
     depends_on:
       - server
     user: "${UID}:${GID}"
@@ -80,9 +87,9 @@ services:
       - "./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro"
     working_dir: /kompakkt/Repo
     command: |
-      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
+      sh -c "bun install; bun run ng build --watch"
   viewer:
-    image: kompakkt/bun-base-image:latest
+    image: docker.io/oven/bun:alpine
     depends_on:
       - server
     user: "${UID}:${GID}"
@@ -91,7 +98,7 @@ services:
       - "./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro"
     working_dir: /kompakkt/Viewer
     command: |
-      sh -c "bun install --frozen-lockfile; bun run ng build --watch"
+      sh -c "bun install; bun run ng build --watch"
 
 volumes:
   uploads:

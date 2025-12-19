@@ -4,8 +4,6 @@ import { $ } from "bun";
 import { mkdir, rmdir } from "node:fs/promises";
 import { parseArgs } from "node:util";
 
-const BASE_IMAGE_TAG = "kompakkt/bun-base-image:latest";
-
 const REPOS = {
   Server: {
     branch: "main",
@@ -50,50 +48,6 @@ const checkDependencies = async (): Promise<void> => {
   }
 };
 
-const baseImageExists = async (): Promise<boolean> => {
-  try {
-    const result = await $`docker images -q ${BASE_IMAGE_TAG}`.text();
-    return result.trim().length > 0;
-  } catch {
-    return false;
-  }
-};
-
-const getBaseImageAge = async (): Promise<number | null> => {
-  try {
-    const result =
-      await $`docker inspect --format='{{.Created}}' ${BASE_IMAGE_TAG}`.text();
-    const createdDate = new Date(result.trim());
-    const now = new Date();
-    const ageInDays =
-      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-    return ageInDays;
-  } catch {
-    return null;
-  }
-};
-
-const isBaseImageOld = async (): Promise<boolean> => {
-  const age = await getBaseImageAge();
-  return age !== null && age > 7;
-};
-
-const shouldUpdateBaseImage = async (): Promise<boolean> => {
-  const exists = await baseImageExists();
-  if (!exists) {
-    console.log("Base image doesn't exist, will build it...");
-    return true;
-  }
-
-  const isOld = await isBaseImageOld();
-  if (isOld) {
-    console.log("Base image is older than 7 days, will update it...");
-    return true;
-  }
-
-  return false;
-};
-
 const setupRepos = async (): Promise<void> => {
   for (const [name, { url, branch }] of typedObjectEntries(REPOS)) {
     console.log(`Cloning ${name}...`);
@@ -113,15 +67,6 @@ const updateRepos = async (): Promise<void> => {
     } catch (error) {
       console.error(`Failed to update ${name}: ${error}`);
     }
-  }
-};
-
-const updateBaseImage = async (reason = "Updating"): Promise<void> => {
-  console.log(`${reason} base image...`);
-  try {
-    await $`UID=$(id -u) GID=$(id -g) docker buildx build --no-cache -t ${BASE_IMAGE_TAG} -f bun-base-image.Dockerfile .`.quiet();
-  } catch (error) {
-    console.error(`Failed ${reason.toLowerCase()} base image: ${error}`);
   }
 };
 
@@ -158,10 +103,6 @@ const up = async (): Promise<void> => {
   try {
     await ensureEnvFile();
 
-    if (await shouldUpdateBaseImage()) {
-      await updateBaseImage("Setting up");
-    }
-
     await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up --build -d`.env(
       {
         COMPOSE_BAKE: "true",
@@ -188,9 +129,7 @@ const pull = async (): Promise<void> => {
     services: Record<string, { image?: string }>;
   };
   const serviceNames = Object.entries(serviceMap)
-    .filter(
-      ([key, value]) => !!value.image && !value.image.includes(BASE_IMAGE_TAG),
-    )
+    .filter(([key, value]) => !!value.image)
     .map(([key]) => key);
   try {
     await $`UID=$(id -u) GID=$(id -g) docker pull docker.io/node:lts-slim`;
@@ -276,19 +215,9 @@ if (positionalArgs.length === 0) {
   const firstArg = positionalArgs[0];
   switch (firstArg) {
     case "setup":
-      await Promise.all([
-        mkdir("uploads/", { recursive: true }),
-        updateBaseImage("Setting up"),
-        setupRepos(),
-      ]);
+      await Promise.all([mkdir("uploads/", { recursive: true }), setupRepos()]);
       break;
     case "update":
-      await Promise.all([updateBaseImage(), updateRepos()]);
-      break;
-    case "update-base-image":
-      await updateBaseImage();
-      break;
-    case "update-repos":
       await updateRepos();
       break;
     case "up":
