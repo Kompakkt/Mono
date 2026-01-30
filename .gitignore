@@ -12,3 +12,4 @@ node_modules
 uploads
 test-results
 .env
+compose.override.yml
