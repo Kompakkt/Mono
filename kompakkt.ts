@@ -103,7 +103,7 @@ const up = async (): Promise<void> => {
   try {
     await ensureEnvFile();
 
-    await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up --build -d`.env(
+    await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env -f compose.yml up --build -d`.env(
       {
         COMPOSE_BAKE: "true",
       },
@@ -116,7 +116,7 @@ const up = async (): Promise<void> => {
 const down = async (): Promise<void> => {
   console.log("Stopping deployment...");
   try {
-    await $`UID=$(id -u) GID=$(id -g) docker compose down`;
+    await $`UID=$(id -u) GID=$(id -g) docker compose -f compose.yml down`;
   } catch (error) {
     console.error(`Failed to stop deployment: ${error}`);
   }
@@ -124,7 +124,7 @@ const down = async (): Promise<void> => {
 
 const pull = async (): Promise<void> => {
   console.log("Pulling images...");
-  const dockerComposeContent = await Bun.file("docker-compose.yml").text();
+  const dockerComposeContent = await Bun.file("compose.yml").text();
   const { services: serviceMap } = Bun.YAML.parse(dockerComposeContent) as {
     services: Record<string, { image?: string }>;
   };

@@ -8,7 +8,6 @@ Komponents
 SKViewer
 .eslintrc.js
 .prettierignore
-tsconfig.json
 node_modules
 uploads
 test-results
