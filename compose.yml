@@ -85,7 +85,7 @@ services:
       - "./repo.custom-plugins.ts:/kompakkt/Repo/src/app/custom-plugins.ts:ro"
     working_dir: /kompakkt/Repo
     command: |
-      sh -c "bun install; bun run ng build --watch"
+      sh -c "bun install; bun run --bun ng build --watch"
   viewer:
     image: docker.io/oven/bun:alpine
     depends_on:
@@ -96,7 +96,7 @@ services:
       - "./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro"
     working_dir: /kompakkt/Viewer
     command: |
-      sh -c "bun install; bun run ng build --watch"
+      sh -c "bun install; bun run --bun ng build --watch"
   kompakkt-reverse-proxy:
     image: docker.io/oven/bun:alpine
     user: "${UID}:${GID}"

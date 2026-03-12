@@ -132,7 +132,6 @@ const pull = async (): Promise<void> => {
     .filter(([key, value]) => !!value.image)
     .map(([key]) => key);
   try {
-    await $`UID=$(id -u) GID=$(id -g) docker pull docker.io/node:lts-slim`;
     await $`UID=$(id -u) GID=$(id -g) docker compose pull ${serviceNames}`;
   } catch (error) {
     console.error(`Failed to pull images: ${error}`);
