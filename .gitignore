@@ -1,15 +1,24 @@
-Plugins
-Repo
-Viewer
-Server
-Processing
-Kompressor
+# Ignore any cloned Kompakkt related repositories
+Common
 Komponents
-SKViewer
-.eslintrc.js
-.prettierignore
+Kompressor
+KRP
+Plugins
+Processing
+Repo
+Server
+Viewer
+
+# Ignore build and deployment related files
 node_modules
 uploads
-test-results
 .env
 compose.override.yml
+
+# Ignore log files and additional documentation
+logs
+docs
+
+# Ignore test results and temporary files
+tests/**/.*
+test-results
