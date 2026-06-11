@@ -50,7 +50,7 @@ services:
   # Kompakkt services
   server:
     env_file: .env
-    image: docker.io/oven/bun:1.3.13-alpine
+    image: docker.io/oven/bun:1.3.14-alpine
     user: "${UID}:${GID}"
     volumes:
       - "./Server:/kompakkt/Server"
@@ -75,7 +75,7 @@ services:
     environment:
       - PREVIEW_GEN_PORT=14841
   repo:
-    image: docker.io/oven/bun:1.3.13-alpine
+    image: docker.io/oven/bun:1.3.14-alpine
     depends_on:
       - server
     user: "${UID}:${GID}"
@@ -84,10 +84,12 @@ services:
       - "./shared-environment.ts:/kompakkt/Repo/src/environment.ts:ro"
       - "./repo.custom-plugins.ts:/kompakkt/Repo/src/app/custom-plugins.ts:ro"
     working_dir: /kompakkt/Repo
+    environment:
+      - SHELL=/bin/sh
     command: |
-      sh -c "bun install; bun run --bun ng build --watch"
+      sh -c "bun install; bunx chokidar-cli 'src/**/*' 'angular.json' 'tsconfig*.json' -c 'bun run --bun ng build' --initial"
   viewer:
-    image: docker.io/oven/bun:1.3.13-alpine
+    image: docker.io/oven/bun:1.3.14-alpine
     depends_on:
       - server
     user: "${UID}:${GID}"
@@ -95,10 +97,12 @@ services:
       - "./Viewer:/kompakkt/Viewer"
       - "./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro"
     working_dir: /kompakkt/Viewer
+    environment:
+      - SHELL=/bin/sh
     command: |
-      sh -c "bun install; bun run --bun ng build --watch"
+      sh -c "bun install; bunx chokidar-cli 'src/**/*' 'angular.json' 'tsconfig*.json' -c 'bun run --bun ng build' --initial"
   kompakkt-reverse-proxy:
-    image: docker.io/oven/bun:1.3.13-alpine
+    image: docker.io/oven/bun:1.3.14-alpine
     user: "${UID}:${GID}"
     volumes:
       - "./Repo:/kompakkt/repo:ro"
