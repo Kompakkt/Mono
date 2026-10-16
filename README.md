@@ -44,6 +44,7 @@ A collection of scripts to get a Kompakkt development environment up and running
 
 - `./kompakkt.ts setup` - Clone repositories, create uploads directory, and build base Docker image
 - `./kompakkt.ts up` - Start the Kompakkt environment
+- `./kompakkt.ts restart [services]` - Recreate and restart services (default: all services)
 - `./kompakkt.ts down` - Stop the Kompakkt environment
 - `./kompakkt.ts pull` - Pull the latest Docker images
 - `./kompakkt.ts compose [args]` - Run Docker Compose with additional arguments
@@ -110,7 +111,7 @@ If you encounter any issues:
 
 2. Restart a specific service:
    ```bash
-   ./kompakkt.ts compose restart [service-name]
+   ./kompakkt.ts restart [service-name]
    ```
 
 3. Rebuild a service:

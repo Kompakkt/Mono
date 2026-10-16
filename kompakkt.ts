@@ -1,7 +1,7 @@
 #! /usr/bin/env bun
 
 import { $ } from "bun";
-import { mkdir, rmdir } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import { parseArgs } from "node:util";
 
 const REPOS = {
@@ -109,6 +109,17 @@ const up = async (): Promise<void> => {
   }
 };
 
+const restart = async (services: string[]): Promise<void> => {
+  console.log(`Restarting ${services.length ? services.join(", ") : "deployment"}...`);
+  try {
+    await ensureEnvFile();
+
+    await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up -d --force-recreate ${services}`;
+  } catch (error) {
+    console.error(`Failed to restart deployment: ${error}`);
+  }
+};
+
 const down = async (): Promise<void> => {
   console.log("Stopping deployment...");
   try {
@@ -150,7 +161,7 @@ const clean = async (): Promise<void> => {
     await $`UID=$(id -u) GID=$(id -g) docker compose down`;
     await $`UID=$(id -u) GID=$(id -g) docker compose rm -v`;
     for (const [name, { url, branch }] of typedObjectEntries(REPOS)) {
-      await rmdir(`${name}`, { recursive: true });
+      await rm(`${name}`, { recursive: true, force: true });
     }
   } catch (error) {
     console.error(`Failed to stop deployment and remove cloned repositories and volumes: ${error}`);
@@ -171,6 +182,7 @@ Commands:
 - update-base-image   Update base image
 - update-repos        Update repositories
 - up                  Start deployment (auto-builds/updates base image if needed)
+- restart [services]  Recreate and restart services (default: all services)
 - down                Stop deployment
 - pull                Pull docker images
 - compose             Pass arguments to docker compose
@@ -214,6 +226,9 @@ if (positionalArgs.length === 0) {
       break;
     case "up":
       await up();
+      break;
+    case "restart":
+      await restart(positionalArgs.slice(1));
       break;
     case "down":
       await down();
