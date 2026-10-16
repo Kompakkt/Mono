@@ -96,6 +96,7 @@ services:
     volumes:
       - "./Viewer:/kompakkt/Viewer"
       - "./shared-environment.ts:/kompakkt/Viewer/src/environment.ts:ro"
+      - "./viewer.custom-plugins.ts:/kompakkt/Viewer/src/app/custom-plugins.ts:ro"
     working_dir: /kompakkt/Viewer
     environment:
       - SHELL=/bin/sh

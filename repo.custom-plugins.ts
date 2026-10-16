@@ -1,4 +1,4 @@
 import { type ExtenderPlugin } from "@kompakkt/plugins/extender";
-import { OIDCPlugin } from "@kompakkt/plugins/oidc";
+import { HelloWorldPlugin } from "@kompakkt/plugins/hello-world";
 
-export default [new OIDCPlugin()] satisfies ExtenderPlugin[];
+export default [new HelloWorldPlugin()] satisfies ExtenderPlugin[];
