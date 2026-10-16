@@ -73,6 +73,26 @@ The setup provides hot-reloading for the frontend applications:
 
 Any changes to the code in these directories will trigger automatic rebuilds thanks to the development servers.
 
+## Plugins
+
+The Repo and Viewer applications can be extended with custom plugins, which are registered in `repo.custom-plugins.ts` and `viewer.custom-plugins.ts` respectively.
+
+### Enabling Semantic Kompakkt
+
+[Semantic Kompakkt](https://nfdi4culture.de/services/details/semantic-kompakkt.html) adds linked open data (LOD) metadata to the Repo and Viewer applications by extending entities and annotations with references to [Wikibase](https://wikiba.se/) items. Enable it by adding the plugin to the custom plugins file(s) in which you want it active:
+
+1. Import the plugin alongside the existing imports:
+   ```ts
+   import { SemanticKompakktMetadataPlugin } from '@kompakkt/plugins/semantic-kompakkt-metadata';
+   ```
+
+2. Create a new instance of the plugin in the exported plugins array:
+   ```ts
+   export default [new HelloWorldPlugin(), new SemanticKompakktMetadataPlugin()] satisfies ExtenderPlugin[];
+   ```
+
+> Note: Semantic Kompakkt requires a backend connected to a Wikibase instance. To deploy your own instance, you can refer to our partner project [wikibase4research](https://gitlab.com/nfdi4culture/wikibase4research/wikibase4research)
+
 ## Configuration
 
 - Server configuration is provided via `server-config.json`
