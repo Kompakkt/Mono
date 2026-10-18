@@ -13,7 +13,7 @@ services:
 
   # Supporting services
   sonic:
-    image: "docker.io/valeriansaliou/sonic:latest"
+    image: "docker.io/valeriansaliou/sonic:v1.10.2"
     volumes:
       - "sonic_data:/var/lib/sonic/store/"
       - "./sonic-config.cfg:/etc/sonic.cfg:ro"
