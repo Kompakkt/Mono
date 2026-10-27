@@ -196,12 +196,14 @@ const compareVersions = (a: string, b: string): number => {
   return 0;
 };
 
-const collectDeps = (files: readonly ProjectFile[]): Map<string, Occurrence[]> => {
+const collectDeps = (
+  files: readonly ProjectFile[],
+): Map<string, Occurrence[]> => {
   const matrix = new Map<string, Occurrence[]>();
   for (const file of files) {
     for (const section of SECTIONS) {
       for (const [name, raw] of Object.entries(file.json[section] ?? {})) {
-        if (!ANGULAR_DEP_PATTERN.test(name) && name !== 'typescript') continue;
+        if (!ANGULAR_DEP_PATTERN.test(name) && name !== "typescript") continue;
         const occurrences = matrix.get(name) ?? [];
         occurrences.push({
           file,
@@ -233,8 +235,7 @@ const groupByVersion = (occurrences: readonly Occurrence[]): Candidate[] => {
     );
 };
 
-const pad = (value: string, width: number): string =>
-  value.padEnd(width, " ");
+const pad = (value: string, width: number): string => value.padEnd(width, " ");
 
 const describe = (occurrence: Occurrence): string =>
   `${occurrence.file.project} (${occurrence.raw})`;
@@ -308,7 +309,8 @@ const promptForVersion = async (
     return suggestion ? { version: suggestion.version, operator: null } : null;
   }
   const index = Number.parseInt(trimmed, 10);
-  const selected = String(index) === trimmed ? candidates[index - 1] : undefined;
+  const selected =
+    String(index) === trimmed ? candidates[index - 1] : undefined;
   if (selected) return { version: selected.version, operator: null };
   const typed = parseChoice(trimmed);
   if (!typed) {
@@ -344,7 +346,11 @@ const buildPlan = async (
     if (candidates.length <= 1 || !suggested) continue;
     if (!rl) {
       changes.push(
-        ...planForPackage(occurrences, { version: suggested.version, operator: null }, mode),
+        ...planForPackage(
+          occurrences,
+          { version: suggested.version, operator: null },
+          mode,
+        ),
       );
       continue;
     }
@@ -373,7 +379,9 @@ const renderPlan = (changes: readonly Change[]): void => {
   const projects = new Set(
     changes.map(({ occurrence }) => occurrence.file.project),
   );
-  console.log(`\n${changes.length} change(s) across ${projects.size} project(s).`);
+  console.log(
+    `\n${changes.length} change(s) across ${projects.size} project(s).`,
+  );
 };
 
 const writeProjects = async (changes: readonly Change[]): Promise<void> => {
@@ -411,7 +419,9 @@ const installProjects = async (
   changes: readonly Change[],
 ): Promise<boolean> => {
   const directories = new Set(
-    changes.map(({ occurrence }) => occurrence.file.path.replace(/\/package\.json$/, "")),
+    changes.map(({ occurrence }) =>
+      occurrence.file.path.replace(/\/package\.json$/, ""),
+    ),
   );
   let ok = true;
   for (const directory of [...directories].sort()) {
@@ -543,9 +553,7 @@ const main = async (): Promise<number> => {
       input: process.stdin,
       output: process.stdout,
     });
-    const answer = await confirmation.question(
-      "\nApply these changes? [y/N] ",
-    );
+    const answer = await confirmation.question("\nApply these changes? [y/N] ");
     confirmation.close();
     if (!/^y(es)?$/i.test(answer.trim())) {
       console.log("Aborted, no files were written.");

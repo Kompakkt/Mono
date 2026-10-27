@@ -19,7 +19,9 @@ const REPOS = {
   },
 } as const;
 
-const typedObjectEntries = <T extends Record<string, any>>(obj: T): [keyof T, T[keyof T]][] => {
+const typedObjectEntries = <T extends Record<string, any>>(
+  obj: T,
+): [keyof T, T[keyof T]][] => {
   return Object.entries(obj) as [keyof T, T[keyof T]][];
 };
 
@@ -101,16 +103,20 @@ const up = async (): Promise<void> => {
   try {
     await ensureEnvFile();
 
-    await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up --build -d`.env({
-      COMPOSE_BAKE: "true",
-    });
+    await $`UID=$(id -u) GID=$(id -g) docker compose --env-file .env up --build -d`.env(
+      {
+        COMPOSE_BAKE: "true",
+      },
+    );
   } catch (error) {
     console.error(`Failed to start deployment: ${error}`);
   }
 };
 
 const restart = async (services: string[]): Promise<void> => {
-  console.log(`Restarting ${services.length ? services.join(", ") : "deployment"}...`);
+  console.log(
+    `Restarting ${services.length ? services.join(", ") : "deployment"}...`,
+  );
   try {
     await ensureEnvFile();
 
@@ -156,7 +162,9 @@ const compose = async (args: string[]): Promise<void> => {
 };
 
 const clean = async (): Promise<void> => {
-  console.log("Stopping deployment and removing cloned repositories and volumes...");
+  console.log(
+    "Stopping deployment and removing cloned repositories and volumes...",
+  );
   try {
     await $`UID=$(id -u) GID=$(id -g) docker compose down`;
     await $`UID=$(id -u) GID=$(id -g) docker compose rm -v`;
@@ -164,7 +172,9 @@ const clean = async (): Promise<void> => {
       await rm(`${name}`, { recursive: true, force: true });
     }
   } catch (error) {
-    console.error(`Failed to stop deployment and remove cloned repositories and volumes: ${error}`);
+    console.error(
+      `Failed to stop deployment and remove cloned repositories and volumes: ${error}`,
+    );
   }
 };
 

@@ -35,7 +35,9 @@
 		uri strip_prefix /viewer
 		root * /srv/viewer/dist/viewer/browser
 		try_files {path} {path}/ /index.html
-		file_server
+		file_server {
+			disable_canonical_uris
+		}
 	}
 
 	# Server at /server
@@ -53,6 +55,8 @@
 		# reverse_proxy repo:4200
 		root * /srv/repo/dist/repo/browser
 		try_files {path} {path}/ /index.html
-		file_server
+		file_server {
+			disable_canonical_uris
+		}
 	}
 }

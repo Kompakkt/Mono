@@ -42,7 +42,7 @@
     }
   },
   "Server": {
-  	"PublicURL": "http://localhost:8080"
+    "PublicURL": "http://localhost:8080"
   },
   "Extensions": {
     "Wikibase": {

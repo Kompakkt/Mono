@@ -20,17 +20,20 @@ A collection of scripts to get a Kompakkt development environment up and running
 ## Getting Started
 
 1. Clone this repository:
+
    ```bash
    git clone https://github.com/Kompakkt/Mono.git
    cd Mono
    ```
 
 2. Make the script executable:
+
    ```bash
    chmod +x kompakkt.ts
    ```
 
 3. Run the setup command to clone all repositories and build the base image:
+
    ```bash
    ./kompakkt.ts setup
    ```
@@ -53,15 +56,14 @@ A collection of scripts to get a Kompakkt development environment up and running
 
 Once the environment is running, you can access the following services:
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Kompakkt Repository | http://localhost:8080/ | Main repository interface |
-| Kompakkt Viewer | http://localhost:8080/viewer/ | 3D viewer application |
-| Kompakkt API | http://localhost:8080/server/ | Backend API |
-| API Documentation | http://localhost:8080/server/swagger/ | Swagger API documentation |
-| MailHog | http://localhost:8025/ | Email testing interface |
-| MongoDB | localhost:37017 | MongoDB database (credentials in docker-compose.yml) |
-
+| Service             | URL                                   | Description                                          |
+| ------------------- | ------------------------------------- | ---------------------------------------------------- |
+| Kompakkt Repository | http://localhost:8080/                | Main repository interface                            |
+| Kompakkt Viewer     | http://localhost:8080/viewer/         | 3D viewer application                                |
+| Kompakkt API        | http://localhost:8080/server/         | Backend API                                          |
+| API Documentation   | http://localhost:8080/server/swagger/ | Swagger API documentation                            |
+| MailHog             | http://localhost:8025/                | Email testing interface                              |
+| MongoDB             | localhost:37017                       | MongoDB database (credentials in docker-compose.yml) |
 
 ## Development Workflow
 
@@ -83,13 +85,17 @@ The Repo and Viewer applications can be extended with custom plugins, which are 
 [Semantic Kompakkt](https://nfdi4culture.de/services/details/semantic-kompakkt.html) adds linked open data (LOD) metadata to the Repo and Viewer applications by extending entities and annotations with references to [Wikibase](https://wikiba.se/) items. Enable it by adding the plugin to the custom plugins file(s) in which you want it active:
 
 1. Import the plugin alongside the existing imports:
+
    ```ts
-   import { SemanticKompakktMetadataPlugin } from '@kompakkt/plugins/semantic-kompakkt-metadata';
+   import { SemanticKompakktMetadataPlugin } from "@kompakkt/plugins/semantic-kompakkt-metadata";
    ```
 
 2. Create a new instance of the plugin in the exported plugins array:
    ```ts
-   export default [new HelloWorldPlugin(), new SemanticKompakktMetadataPlugin()] satisfies ExtenderPlugin[];
+   export default [
+     new HelloWorldPlugin(),
+     new SemanticKompakktMetadataPlugin(),
+   ] satisfies ExtenderPlugin[];
    ```
 
 > Note: Semantic Kompakkt requires a backend connected to a Wikibase instance. To deploy your own instance, you can refer to our partner project [wikibase4research](https://gitlab.com/nfdi4culture/wikibase4research/wikibase4research)
@@ -105,11 +111,13 @@ The Repo and Viewer applications can be extended with custom plugins, which are 
 If you encounter any issues:
 
 1. Check logs for a specific service:
+
    ```bash
    ./kompakkt.ts compose logs [service-name]
    ```
 
 2. Restart a specific service:
+
    ```bash
    ./kompakkt.ts restart [service-name]
    ```

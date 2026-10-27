@@ -28,7 +28,7 @@
 
     // We use the @kompakkt/plugins installed to Repo for checking the *.custom-plugins.ts files validity
     "paths": {
-      "@kompakkt/plugins/*": ["./Repo/src/@kompakkt/plugins/plugins/*/src"],
-    },
-  },
+      "@kompakkt/plugins/*": ["./Repo/src/@kompakkt/plugins/plugins/*/src"]
+    }
+  }
 }

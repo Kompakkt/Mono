@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check-plugins": "bun check *.custom-plugins.ts"
+    "check-plugins": "bun check *.custom-plugins.ts",
+    "format": "bun fmt ./*.{json,ts,md}"
   },
   "devDependencies": {
     "@types/bun": "1.4.3",
