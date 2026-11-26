@@ -12,11 +12,6 @@ services:
       - CADDY_REPORTING_DOMAIN=${CADDY_REPORTING_DOMAIN:-"https://kompakkt.de"}
 
   # Supporting services
-  sonic:
-    image: "docker.io/valeriansaliou/sonic:v1.10.2"
-    volumes:
-      - "sonic_data:/var/lib/sonic/store/"
-      - "./sonic-config.cfg:/etc/sonic.cfg:ro"
   mongo:
     image: "docker.io/mongo:8-noble"
     environment:
@@ -27,12 +22,13 @@ services:
     volumes:
       - "mongodb_data:/data/db"
   redis:
-    image: "docker.dragonflydb.io/dragonflydb/dragonfly:latest"
+    image: "docker.io/redis:8-alpine"
     ulimits:
       memlock: -1
-    command: "--maxmemory=1gb --proactor_threads=1"
     ports:
       - "127.0.0.1:6379:6379"
+    volumes:
+      - "redis_data:/data"
   mailhog:
     image: "mailhog/mailhog:latest"
     ports:
@@ -61,7 +57,6 @@ services:
     depends_on:
       - mongo
       - redis
-      - sonic
       - kompressor
       - preview-gen
       - mailhog
@@ -123,4 +118,4 @@ volumes:
       device: ./uploads
       o: bind
   mongodb_data: null
-  sonic_data: null
+  redis_data: null
